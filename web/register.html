@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiFWeB.GeNiUs.ViaFacil - Cadastro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #161616;
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #FFFFFF;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #FFFFFF;
+        }
+
+        .form {
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 6px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 46px;
+            border: 2px solid #FF5A00;
+            background-color: #353535;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"] {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #FFFFFF;
+            font-size: 15px;
+            padding: 0 14px;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #b6b6b6;
+        }
+
+        .password-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 62px;
+            height: 100%;
+            border-left: 1px solid #FF5A00;
+            cursor: pointer;
+            background: transparent;
+            color: #FF5A00;
+            font-size: 11px;
+            font-weight: 700;
+            border: none;
+        }
+
+        .input-group.has-error {
+            border-color: #FF0000;
+        }
+
+        .error-text {
+            font-size: 13px;
+            color: #FF0000;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-text.show {
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 46px;
+            background-color: #353535;
+            border: 2px solid #FF5A00;
+            border-radius: 2px;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background-color: #FF5A00;
+            color: #000000;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            background-color: #1a1a1a;
+            border-color: #b39d73;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #FFFFFF;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+
+        .footer-title {
+            font-family: monospace;
+            font-size: 13px;
+            color: #FF5A00;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #FFFFFF;
+            margin-top: 4px;
+        }
+
+        .success-message {
+            background-color: rgba(0, 200, 83, 0.2);
+            border-left: 4px solid #00c853;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            color: #00c853;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #353535;
+            border-left: 4px solid #FF5A00;
+            padding: 15px 20px;
+            border-radius: 5px;
+            max-width: 90%;
+            z-index: 1000;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert.error {
+            border-left-color: #FF0000;
+            background: rgba(255, 0, 0, 0.1);
+            color: #FF0000;
+        }
+
+        .alert.success {
+            border-left-color: #00c853;
+            background: rgba(0, 200, 83, 0.1);
+            color: #00c853;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: transparent;
+            border: none;
+            color: #FF5A00;
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="goBack()" title="Voltar">←</button>
+
+    <div class="container">
+        <div class="content">
+            <div class="logo-section">
+                <div class="logo">SiFWeB.GeNiUs.ViaFacil</div>
+                <div class="subtitle">Cadastro de usuário</div>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✓ Cadastro realizado com sucesso!
+            </div>
+
+            <form class="form" id="registerForm" onsubmit="handleSubmit(event)">
+                <!-- NOME -->
+                <div class="form-group">
+                    <label for="nome">Seu nome</label>
+                    <div class="input-group" id="nomeGroup">
+                        <input
+                            type="text"
+                            id="nome"
+                            placeholder="Nome"
+                            onchange="clearError('nome')"
+                            oninput="clearError('nome')"
+                        />
+                    </div>
+                    <div class="error-text" id="nomeError"></div>
+                </div>
+
+                <!-- CELULAR -->
+                <div class="form-group">
+                    <label for="celular">Seu celular</label>
+                    <div class="input-group" id="celularGroup">
+                        <input
+                            type="tel"
+                            id="celular"
+                            placeholder="(00) 00000-0000"
+                            onchange="clearError('celular')"
+                            oninput="formatPhone(event)"
+                        />
+                    </div>
+                    <div class="error-text" id="celularError"></div>
+                </div>
+
+                <!-- EMAIL -->
+                <div class="form-group">
+                    <label for="email">Seu e-mail</label>
+                    <div class="input-group" id="emailGroup">
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="E-mail"
+                            onchange="clearError('email')"
+                            oninput="clearError('email')"
+                        />
+                    </div>
+                    <div class="error-text" id="emailError"></div>
+                </div>
+
+                <!-- SENHA -->
+                <div class="form-group">
+                    <label for="senha">Sua senha</label>
+                    <div class="input-group" id="senhaGroup">
+                        <input
+                            type="password"
+                            id="senha"
+                            placeholder="Senha"
+                            onchange="clearError('senha')"
+                            oninput="clearError('senha')"
+                        />
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('senha')"
+                        >
+                            <span id="senhaToggleText">Mostrar</span>
+                        </button>
+                    </div>
+                    <div class="error-text" id="senhaError"></div>
+                </div>
+
+                <!-- CONFIRMAR SENHA -->
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar senha</label>
+                    <div class="input-group" id="confirmarSenhaGroup">
+                        <input
+                            type="password"
+                            id="confirmarSenha"
+                            placeholder="Confirmar senha"
+                            onchange="clearError('confirmarSenha')"
+                            oninput="clearError('confirmarSenha')"
+                        />
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('confirmarSenha')"
+                        >
+                            <span id="confirmarSenhaToggleText">Mostrar</span>
+                        </button>
+                    </div>
+                    <div class="error-text" id="confirmarSenhaError"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    CADASTRAR
+                </button>
+            </form>
+        </div>
+
+        <div class="footer">
+            <div class="footer-title">SiFWeB.GeNiUs.ViaFacil</div>
+            <div class="footer-text">Cadastro de usuário</div>
+        </div>
+    </div>
+
+    <div class="alert" id="alertBox"></div>
+
+    <script type="module">
+        // Importar serviço de usuário
+        import { userService } from './userService.js';
+
+        window.handleSubmit = async function(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nome').value.trim();
+            const celular = document.getElementById('celular').value;
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            // Limpar erros anteriores
+            clearAllErrors();
+
+            // Validações
+            let hasError = false;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const celularDigits = celular.replace(/\D/g, '');
+
+            if (!nome) {
+                setError('nome', 'Digite o nome.');
+                hasError = true;
+            }
+
+            if (!celularDigits) {
+                setError('celular', 'Digite o celular.');
+                hasError = true;
+            } else if (celularDigits.length < 10) {
+                setError('celular', 'Digite um celular válido.');
+                hasError = true;
+            }
+
+            if (!email) {
+                setError('email', 'Digite o e-mail.');
+                hasError = true;
+            } else if (!emailRegex.test(email)) {
+                setError('email', 'Digite um e-mail válido.');
+                hasError = true;
+            }
+
+            if (!senha) {
+                setError('senha', 'Digite a senha.');
+                hasError = true;
+            } else if (senha.length < 8) {
+                setError('senha', 'A senha deve ter pelo menos 8 caracteres.');
+                hasError = true;
+            }
+
+            if (!confirmarSenha) {
+                setError('confirmarSenha', 'Confirme a senha.');
+                hasError = true;
+            } else if (confirmarSenha !== senha) {
+                setError('confirmarSenha', 'As senhas não conferem.');
+                hasError = true;
+            }
+
+            if (hasError) {
+                return;
+            }
+
+            // Cadastrar usuário
+            await cadastrarUsuario(nome, celularDigits, email, senha);
+        };
+
+        window.cadastrarUsuario = async function(nome, celularDigits, email, senha) {
+            try {
+                // Ativar loading
+                setLoading(true);
+
+                // Chamar serviço de usuário
+                await userService.cadastrarUsuario(
+                    nome,
+                    celularDigits,
+                    email,
+                    senha
+                );
+
+                // Sucesso
+                showAlert('✓ Cadastro realizado com sucesso!', 'success');
+                document.getElementById('registerForm').reset();
+
+                setTimeout(() => {
+                    window.location.href = 'http://localhost:8082/';
+                }, 2000);
+
+            } catch (error) {
+                let mensagemErro = 'Erro ao realizar cadastro';
+
+                if (error.code === 'auth/email-already-in-use') {
+                    mensagemErro = 'Este e-mail já está cadastrado';
+                } else if (error.code === 'auth/weak-password') {
+                    mensagemErro = 'Senha muito fraca';
+                } else if (error.code === 'auth/invalid-email') {
+                    mensagemErro = 'E-mail inválido';
+                }
+
+                showAlert(mensagemErro, 'error');
+
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Funções auxiliares
+        window.clearError = function(field) {
+            const errorEl = document.getElementById(`${field}Error`);
+            const groupEl = document.getElementById(`${field}Group`);
+            if (errorEl) errorEl.classList.remove('show');
+            if (groupEl) groupEl.classList.remove('has-error');
+        };
+
+        window.clearAllErrors = function() {
+            document.querySelectorAll('.error-text').forEach(el => el.classList.remove('show'));
+            document.querySelectorAll('.input-group').forEach(el => el.classList.remove('has-error'));
+        };
+
+        window.setError = function(field, message) {
+            const errorEl = document.getElementById(`${field}Error`);
+            const groupEl = document.getElementById(`${field}Group`);
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.classList.add('show');
+            }
+            if (groupEl) {
+                groupEl.classList.add('has-error');
+            }
+        };
+
+        window.setLoading = function(isLoading) {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = isLoading;
+            if (isLoading) {
+                btn.innerHTML = '<div class="spinner"></div>';
+            } else {
+                btn.textContent = 'CADASTRAR';
+            }
+        };
+
+        window.showAlert = function(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type} show`;
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 3000);
+        };
+
+        window.formatPhone = function(event) {
+            let value = event.target.value.replace(/\D/g, '').slice(0, 11);
+
+            if (value.length <= 2) {
+                event.target.value = value;
+            } else if (value.length <= 7) {
+                event.target.value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+            } else {
+                event.target.value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
+            }
+        };
+
+        window.togglePassword = function(fieldId) {
+            const input = document.getElementById(fieldId);
+            const toggleBtn = event.target.closest('.password-toggle');
+            const toggleText = toggleBtn.querySelector('span');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleText.textContent = 'Ocultar';
+            } else {
+                input.type = 'password';
+                toggleText.textContent = 'Mostrar';
+            }
+        };
+
+        window.goBack = function() {
+            window.history.back();
+        };
+    </script>
+</body>
+</html>
