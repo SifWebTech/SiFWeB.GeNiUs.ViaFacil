@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import {
     StyleSheet,
@@ -8,12 +10,17 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../../App';
+import { auth } from '../services/firebaseConfig';
 
 interface ScreenFooterProps {
     navigation: NativeStackNavigationProp<RootStackParamList, keyof RootStackParamList>;
 }
 
 export function ScreenFooter({ navigation }: ScreenFooterProps) {
+    const [signedIn, setSignedIn] = useState(false);
+
+    useEffect(() => onAuthStateChanged(auth, user => setSignedIn(Boolean(user))), []);
+
     return (
         <View style={styles.footer}>
             <Text style={styles.footerTitle}>SiFWeB.GeNiUs.ViaFacil</Text>
@@ -42,14 +49,14 @@ export function ScreenFooter({ navigation }: ScreenFooterProps) {
                     <Text style={styles.actionText}>Cadastro</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {signedIn && <TouchableOpacity
                     activeOpacity={0.75}
                     onPress={() => navigation.navigate('Dashboard')}
                     style={styles.actionButton}
                 >
                     <Ionicons color="#FF5A00" name="grid-outline" size={16} />
                     <Text style={styles.actionText}>Dashboard</Text>
-                </TouchableOpacity>
+                </TouchableOpacity>}
             </View>
         </View>
     );

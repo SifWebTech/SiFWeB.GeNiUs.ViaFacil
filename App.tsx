@@ -8,6 +8,10 @@ import MainScreen from './src/screens/main_screen';
 import LoginScreen from './src/screens/login_screen';
 import RegisterScreen from './src/screens/register_screen';
 import DashboardScreen from './src/screens/dashboard_screen';
+import NewClientScreen from './src/screens/new_client_screen';
+import NewProcessScreen from './src/screens/new_process_screen';
+import ReportsScreen from './src/screens/reports_screen';
+import SettingsScreen from './src/screens/settings_screen';
 
 export type RootStackParamList = {
     Splash: undefined;
@@ -15,6 +19,10 @@ export type RootStackParamList = {
     Login: undefined;
     Register: undefined;
     Dashboard: undefined;
+    NewClient: undefined;
+    NewProcess: undefined;
+    Reports: undefined;
+    Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -31,6 +39,10 @@ export default function App() {
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="Dashboard" component={DashboardScreen} />
+                <Stack.Screen name="NewClient" component={NewClientScreen} />
+                <Stack.Screen name="NewProcess" component={NewProcessScreen} />
+                <Stack.Screen name="Reports" component={ReportsScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

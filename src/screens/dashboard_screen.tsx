@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import type { ComponentProps } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
     SafeAreaView,
     ScrollView,
@@ -8,14 +10,21 @@ import {
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator,
 } from 'react-native';
 
 import type { RootStackParamList } from '../../App';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ScreenFooter } from '../components/ScreenFooter';
+import { auth } from '../services/firebaseConfig';
+import { defaultSettings, subscribeClients, subscribeProcesses, subscribeSettings, type ClientRecord, type ProcessRecord } from '../services/officeData';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
+type IconName = ComponentProps<typeof Ionicons>['name'];
+type DashboardTabId =
+    | 'home'
+    | 'clientesProcessos'
+    | 'alvarasPrazos'
+    | 'sair';
 
 interface DashboardStats {
     totalClientes: number;
@@ -23,78 +32,118 @@ interface DashboardStats {
     processos: number;
     alvarasCompletos: number;
     alvarasPendentes: number;
-    prazos: Array<{
+    prazos: {
         id: string;
         nome: string;
         dataVencimento: string;
         dias: number;
-    }>;
+    }[];
 }
 
 export default function DashboardScreen({ navigation }: Props) {
-    const [stats, setStats] = useState<DashboardStats>({
-        totalClientes: 156,
-        clientesCadastrados: 142,
-        processos: 38,
-        alvarasCompletos: 28,
-        alvarasPendentes: 10,
-        prazos: [
-            {
-                id: '1',
-                nome: 'Alvará - Empresa ABC',
-                dataVencimento: '2024-10-15',
-                dias: 5,
-            },
-            {
-                id: '2',
-                nome: 'Regularização - Empresa XYZ',
-                dataVencimento: '2024-10-20',
-                dias: 10,
-            },
-            {
-                id: '3',
-                nome: 'Análise - Empresa 123',
-                dataVencimento: '2024-10-25',
-                dias: 15,
-            },
-        ],
-    });
-
-    const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<DashboardTabId>('home');
+    const [clients, setClients] = useState<ClientRecord[]>([]);
+    const [processes, setProcesses] = useState<ProcessRecord[]>([]);
+    const [settings, setSettings] = useState(defaultSettings);
+    const [dataError, setDataError] = useState('');
+    const stats: DashboardStats = {
+        totalClientes: clients.length,
+        clientesCadastrados: new Set(processes.map(item => item.clientId)).size,
+        processos: processes.length,
+        alvarasCompletos: processes.filter(item => item.status === 'Aprovado').length,
+        alvarasPendentes: processes.filter(item => item.status === 'Pendência').length,
+        prazos: (settings.notificationsEnabled ? processes : []).filter(item => item.dueDate && item.status !== 'Aprovado').map(item => ({
+            id: item.id,
+            nome: `${item.kind} - ${item.clientName}`,
+            dataVencimento: item.dueDate,
+            dias: Math.ceil((new Date(`${item.dueDate}T23:59:59`).getTime() - Date.now()) / 86400000),
+        })).filter(item => Number.isFinite(item.dias) && item.dias <= settings.deadlineAlertDays).sort((a, b) => a.dias - b.dias),
+    };
 
     useEffect(() => {
-        // Simular carregamento de dados do Firebase
-        loadDashboardData();
-    }, []);
+        let stopClients: (() => void) | undefined;
+        let stopProcesses: (() => void) | undefined;
+        let stopSettings: (() => void) | undefined;
+        const stopAuth = onAuthStateChanged(auth, user => {
+            stopClients?.();
+            stopProcesses?.();
+            stopSettings?.();
+            stopClients = undefined;
+            stopProcesses = undefined;
+            stopSettings = undefined;
 
-    const loadDashboardData = async () => {
-        setLoading(true);
+            if (!user) {
+                navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                return;
+            }
+
+            setDataError('');
+            try {
+                stopClients = subscribeClients(setClients, error => setDataError(error.message));
+                stopProcesses = subscribeProcesses(setProcesses, error => setDataError(error.message));
+                stopSettings = subscribeSettings(setSettings, error => setDataError(error.message));
+            } catch (error) {
+                setDataError(error instanceof Error ? error.message : 'Erro ao carregar dados.');
+            }
+        });
+        return () => {
+            stopAuth();
+            stopClients?.();
+            stopProcesses?.();
+            stopSettings?.();
+        };
+    }, [navigation]);
+
+    const handleLogout = async () => {
         try {
-            // TODO: Conectar com Firebase para buscar dados reais
-            // const clientes = await getClientesFromFirebase();
-            // Aqui os dados vêm mockados por enquanto
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        } catch (error) {
-            console.error('Erro ao carregar dados:', error);
+            await signOut(auth);
         } finally {
-            setLoading(false);
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+            });
         }
     };
 
-    const handleLogout = () => {
-        navigation.navigate('Splash');
-    };
+    const dashboardTabs: {
+        id: DashboardTabId;
+        label: string;
+        icon: IconName;
+        value: string;
+        description: string;
+    }[] = [
+        {
+            id: 'home',
+            label: 'Home',
+            icon: 'home-outline',
+            value: 'Resumo',
+            description: 'Visão geral dos indicadores e atividades recentes.',
+        },
+        {
+            id: 'clientesProcessos',
+            label: 'Clientes e Processos',
+            icon: 'people-outline',
+            value: `${stats.totalClientes} / ${stats.processos}`,
+            description: `${stats.clientesCadastrados} clientes com processos e ${stats.processos} processos em acompanhamento.`,
+        },
+        {
+            id: 'alvarasPrazos',
+            label: 'Pendências e Prazos',
+            icon: 'shield-checkmark-outline',
+            value: `${stats.alvarasPendentes} / ${stats.prazos.length}`,
+            description: `${stats.alvarasPendentes} processos pendentes e ${stats.prazos.length} prazos próximos.`,
+        },
+        {
+            id: 'sair',
+            label: 'Sair',
+            icon: 'log-out-outline',
+            value: '',
+            description: 'Encerrar a sessão atual.',
+        },
+    ];
 
-    if (loading) {
-        return (
-            <SafeAreaView style={styles.safeArea}>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#FF5A00" />
-                    <Text style={styles.loadingText}>Carregando dashboard...</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
+    const activeTabData =
+        dashboardTabs.find((tab) => tab.id === activeTab) ?? dashboardTabs[0];
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -105,6 +154,28 @@ export default function DashboardScreen({ navigation }: Props) {
                 contentContainerStyle={styles.scrollContent}
                 style={styles.container}
             >
+                {dataError ? <Text style={{ color: '#F07171', marginHorizontal: 16, marginTop: 12 }}>{dataError}</Text> : null}
+                <View style={styles.activeTabCard}>
+                    <View style={styles.activeTabIcon}>
+                        <Ionicons
+                            color="#FF5A00"
+                            name={activeTabData.icon}
+                            size={28}
+                        />
+                    </View>
+                    <View style={styles.activeTabInfo}>
+                        <Text style={styles.activeTabTitle}>
+                            {activeTabData.label}
+                        </Text>
+                        <Text style={styles.activeTabDescription}>
+                            {activeTabData.description}
+                        </Text>
+                    </View>
+                    <Text style={styles.activeTabValue}>
+                        {activeTabData.value}
+                    </Text>
+                </View>
+
                 {/* KPI Cards - Primeira Linha */}
                 <View style={styles.kpiGrid}>
                     <KPICard
@@ -116,7 +187,7 @@ export default function DashboardScreen({ navigation }: Props) {
                     />
                     <KPICard
                         icon="checkmark-circle-outline"
-                        title="Cadastrados"
+                        title="Com processos"
                         value={stats.clientesCadastrados.toString()}
                         color="#00DD00"
                         bgColor="rgba(0, 221, 0, 0.1)"
@@ -134,7 +205,7 @@ export default function DashboardScreen({ navigation }: Props) {
                     />
                     <KPICard
                         icon="shield-checkmark-outline"
-                        title="Alvarás OK"
+                        title="Aprovados"
                         value={stats.alvarasCompletos.toString()}
                         color="#00DD00"
                         bgColor="rgba(0, 221, 0, 0.1)"
@@ -152,9 +223,9 @@ export default function DashboardScreen({ navigation }: Props) {
                             />
                         </View>
                         <View>
-                            <Text style={styles.cardTitle}>Alvarás Pendentes</Text>
+                            <Text style={styles.cardTitle}>Processos Pendentes</Text>
                             <Text style={styles.cardSubtitle}>
-                                Aguardando aprovação
+                                Necessitam acompanhamento
                             </Text>
                         </View>
                     </View>
@@ -166,7 +237,7 @@ export default function DashboardScreen({ navigation }: Props) {
                             itens necessitam atenção
                         </Text>
                     </View>
-                    <TouchableOpacity style={styles.actionBtn}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Reports')}>
                         <Text style={styles.actionBtnText}>Ver Detalhes →</Text>
                     </TouchableOpacity>
                 </View>
@@ -191,7 +262,7 @@ export default function DashboardScreen({ navigation }: Props) {
                     {stats.prazos.length === 0 && (
                         <View style={styles.emptyState}>
                             <Text style={styles.emptyStateText}>
-                                Nenhum prazo próximo! 🎉
+                                Nenhum prazo próximo.
                             </Text>
                         </View>
                     )}
@@ -212,23 +283,23 @@ export default function DashboardScreen({ navigation }: Props) {
                             <View
                                 style={[
                                     styles.progressFill,
-                                    { width: '78%' },
+                                    { width: `${stats.processos ? Math.round(stats.alvarasCompletos / stats.processos * 100) : 0}%` },
                                 ]}
                             />
                         </View>
-                        <Text style={styles.statValue}>78%</Text>
+                        <Text style={styles.statValue}>{stats.processos ? Math.round(stats.alvarasCompletos / stats.processos * 100) : 0}%</Text>
                     </View>
 
                     <View style={styles.statRow}>
                         <Text style={styles.statLabel}>
-                            Tempo Médio (Processos)
+                            Processos em acompanhamento
                         </Text>
-                        <Text style={styles.statValue}>4.2 dias</Text>
+                        <Text style={styles.statValue}>{stats.processos - stats.alvarasCompletos}</Text>
                     </View>
 
                     <View style={styles.statRow}>
-                        <Text style={styles.statLabel}>Última Atualização</Text>
-                        <Text style={styles.statValue}>Hoje</Text>
+                        <Text style={styles.statLabel}>Atualização</Text>
+                        <Text style={styles.statValue}>Em tempo real</Text>
                     </View>
                 </View>
 
@@ -239,24 +310,77 @@ export default function DashboardScreen({ navigation }: Props) {
                         <ActionButton
                             icon="person-add-outline"
                             label="Novo Cliente"
+                            onPress={() => navigation.navigate('NewClient')}
                         />
                         <ActionButton
                             icon="document-text-outline"
                             label="Novo Processo"
+                            onPress={() => navigation.navigate('NewProcess')}
                         />
                         <ActionButton
                             icon="download-outline"
                             label="Relatório"
+                            onPress={() => navigation.navigate('Reports')}
                         />
                         <ActionButton
                             icon="settings-outline"
                             label="Configurações"
+                            onPress={() => navigation.navigate('Settings')}
                         />
                     </View>
                 </View>
 
                 <ScreenFooter navigation={navigation} />
             </ScrollView>
+
+            <View style={styles.bottomTabsWrapper}>
+                <View style={styles.tabsContent}>
+                    {dashboardTabs.map((tab) => {
+                        const isActive = tab.id === activeTab;
+
+                        return (
+                            <TouchableOpacity
+                                key={tab.id}
+                                activeOpacity={0.8}
+                                onPress={() => {
+                                    if (tab.id === 'sair') {
+                                        void handleLogout();
+                                        return;
+                                    }
+
+                                    setActiveTab(tab.id);
+                                }}
+                                style={[
+                                    styles.tabButton,
+                                    isActive && styles.tabButtonActive,
+                                    tab.id === 'sair' && styles.logoutTabButton,
+                                ]}
+                            >
+                                <Ionicons
+                                    color={
+                                        isActive
+                                            ? '#000000'
+                                            : tab.id === 'sair'
+                                              ? '#FF4D4D'
+                                              : '#FF5A00'
+                                    }
+                                    name={tab.icon}
+                                    size={22}
+                                />
+                                <Text
+                                    style={[
+                                        styles.tabLabel,
+                                        isActive && styles.tabLabelActive,
+                                        tab.id === 'sair' && styles.logoutTabLabel,
+                                    ]}
+                                >
+                                    {tab.label}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            </View>
         </SafeAreaView>
     );
 }
@@ -273,7 +397,7 @@ function KPICard({ icon, title, value, color, bgColor }: KPICardProps) {
     return (
         <View style={[styles.kpiCard, { backgroundColor: bgColor }]}>
             <View style={styles.kpiHeader}>
-                <Ionicons color={color} name={icon as any} size={28} />
+                <Ionicons color={color} name={icon as IconName} size={28} />
             </View>
             <Text style={styles.kpiValue}>{value}</Text>
             <Text style={styles.kpiTitle}>{title}</Text>
@@ -331,13 +455,14 @@ function PrazoCard({ prazo }: PrazoCardProps) {
 interface ActionButtonProps {
     icon: string;
     label: string;
+    onPress: () => void;
 }
 
-function ActionButton({ icon, label }: ActionButtonProps) {
+function ActionButton({ icon, label, onPress }: ActionButtonProps) {
     return (
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
             <View style={styles.actionIcon}>
-                <Ionicons color="#FF5A00" name={icon as any} size={28} />
+                <Ionicons color="#FF5A00" name={icon as IconName} size={28} />
             </View>
             <Text style={styles.actionLabel}>{label}</Text>
         </TouchableOpacity>
@@ -355,6 +480,93 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingBottom: 30,
+    },
+
+    // Navigation Tabs
+    bottomTabsWrapper: {
+        paddingTop: 10,
+        paddingBottom: 8,
+        backgroundColor: '#202020',
+        borderTopWidth: 1,
+        borderTopColor: '#454545',
+    },
+    tabsContent: {
+        flexDirection: 'row',
+        gap: 4,
+        paddingHorizontal: 8,
+    },
+    tabButton: {
+        flex: 1,
+        minWidth: 0,
+        height: 58,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#242424',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#454545',
+        paddingHorizontal: 2,
+    },
+    tabButtonActive: {
+        backgroundColor: '#FF5A00',
+        borderColor: '#FF5A00',
+    },
+    logoutTabButton: {
+        borderColor: '#7a3030',
+    },
+    tabLabel: {
+        marginTop: 6,
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: '700',
+        textAlign: 'center',
+        lineHeight: 12,
+    },
+    tabLabelActive: {
+        color: '#000000',
+    },
+    logoutTabLabel: {
+        color: '#FF4D4D',
+    },
+    activeTabCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 16,
+        marginTop: 12,
+        marginBottom: 4,
+        padding: 14,
+        backgroundColor: '#242424',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#454545',
+        gap: 12,
+    },
+    activeTabIcon: {
+        width: 44,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1a1a1a',
+        borderRadius: 10,
+    },
+    activeTabInfo: {
+        flex: 1,
+    },
+    activeTabTitle: {
+        color: '#FFFFFF',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    activeTabDescription: {
+        marginTop: 3,
+        color: '#b6b6b6',
+        fontSize: 12,
+        lineHeight: 16,
+    },
+    activeTabValue: {
+        color: '#FF5A00',
+        fontSize: 18,
+        fontWeight: '700',
     },
 
     // Loading
