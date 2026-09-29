@@ -7,6 +7,7 @@ import SplashScreen from './src/screens/splash_screen';
 import MainScreen from './src/screens/main_screen';
 import LoginScreen from './src/screens/login_screen';
 import RegisterScreen from './src/screens/register_screen';
+import HomeScreen from './src/screens/home_screen';
 import DashboardScreen from './src/screens/dashboard_screen';
 import NewClientScreen from './src/screens/new_client_screen';
 import NewProcessScreen from './src/screens/new_process_screen';
@@ -18,6 +19,7 @@ export type RootStackParamList = {
     Main: undefined;
     Login: undefined;
     Register: undefined;
+    Home: undefined;
     Dashboard: undefined;
     NewClient: undefined;
     NewProcess: undefined;
@@ -38,6 +40,7 @@ export default function App() {
                 <Stack.Screen name="Main" component={MainScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Dashboard" component={DashboardScreen} />
                 <Stack.Screen name="NewClient" component={NewClientScreen} />
                 <Stack.Screen name="NewProcess" component={NewProcessScreen} />
