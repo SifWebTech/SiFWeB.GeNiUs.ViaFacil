@@ -1,50 +1,140 @@
-# Welcome to your Expo app 👋
+# 🚒 ViaFácil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo mobile para escritórios que cuidam de processos junto ao Corpo de Bombeiros (AVCB e similares): cadastro de usuários, login, cadastro de clientes, abertura de processos, relatórios e configurações.
 
-## Get started
+Trabalho da disciplina **Dispositivos Móveis I** — FATEC, 5º semestre.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🧰 Tecnologias
 
-2. Start the app
+| Item | Versão |
+|------|--------|
+| Expo SDK | 54 |
+| React Native | 0.81 |
+| React | 19.1 |
+| TypeScript | 5.9 |
+| Firebase (Auth + Realtime Database) | 12 |
+| React Navigation (Native Stack) | 7 |
+| AsyncStorage (sessão do login) | 2.2 |
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 🚀 Como rodar
 
 ```bash
-npm run reset-project
+# 1. Instalar as dependências (sempre depois de um git pull)
+npm install
+
+# 2. Iniciar o Expo (o -c limpa o cache)
+npx expo start -c
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Depois, no celular, abra o **Expo Go** e escaneie o QR code do terminal.
 
-## Learn more
+### 📶 O celular não conecta?
 
-To learn more about developing your project with Expo, look at the following resources:
+- No celular, `localhost` é o próprio celular. Use o QR code ou o IP do computador (`exp://<IP-do-PC>:8081`).
+- Redes de laboratório (ex.: `FatecWiLab`) costumam **isolar os aparelhos** e o Windows bloqueia conexões em redes **Públicas**. Nesses casos use o modo túnel:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start --tunnel
+```
 
-## Join the community
+> Na primeira vez o Expo pede para instalar o `@expo/ngrok` — responda **Y**.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🗺️ Telas e navegação
+
+```
+Splash → Main → Login ──► Dashboard ──► Novo cliente
+              └► Cadastro            ├─► Novo processo
+                                     ├─► Relatórios
+                                     └─► Configurações
+Home (botão "Novo cliente") — registrada, ainda sem caminho de navegação até ela
+```
+
+| Tela | Arquivo | O que faz |
+|------|---------|-----------|
+| Splash | `src/screens/splash_screen.tsx` | Abertura do app |
+| Main | `src/screens/main_screen.tsx` | Menu principal (consulta de empresa, ITs/normas, solicitar análise) e rodapé com Login/Cadastro |
+| Cadastro | `src/screens/register_screen.tsx` | Cria conta no Firebase Auth e salva o perfil em `usuarios/{uid}` |
+| Login | `src/screens/login_screen.tsx` | Entra com e-mail e senha e abre o Dashboard |
+| Dashboard | `src/screens/dashboard_screen.tsx` | Indicadores, prazos, atalhos e logout. Volta ao Login se não houver sessão |
+| Home | `src/screens/home_screen.tsx` | Botão "Novo cliente" |
+| Novo cliente | `src/screens/new_client_screen.tsx` | Cadastro de cliente usando o `ClienteService` |
+| Novo processo | `src/screens/new_process_screen.tsx` | Abre processo vinculado a um cliente |
+| Relatórios | `src/screens/reports_screen.tsx` | Gráficos por situação/tipo e atividade mensal, com filtro de período |
+| Configurações | `src/screens/settings_screen.tsx` | Nome do escritório, prazos no dashboard, padrões de cadastro e bases de normas |
+
+---
+
+## 📂 Estrutura
+
+```
+ViaFacil/
+├── App.tsx                     ← Rotas (Native Stack)
+├── src/
+│   ├── components/             ← OfficeUI, ScreenHeader, ScreenFooter
+│   ├── model/                  ← UserModel, ClienteModel
+│   ├── screens/                ← Telas do app
+│   └── services/
+│       ├── firebaseConfig.tsx  ← Firebase App, Auth (com sessão salva) e Database
+│       ├── userService.tsx     ← Cadastro de usuário
+│       ├── ClienteService.tsx  ← CRUD, máscaras e validação de clientes
+│       └── officeData.ts       ← Processos, configurações e leitura em tempo real
+├── assets/                     ← Imagens (GIF do bombeiro)
+├── docs/                       ← Documentação das aulas
+└── web/                        ← Versão web em HTML puro (porta 8082)
+```
+
+---
+
+## 🔥 Firebase
+
+- **Projeto:** `viafacil-fe487`
+- **Authentication:** e-mail e senha. A sessão fica salva no aparelho (AsyncStorage) e no navegador (web), então o usuário não é deslogado a cada reload.
+- **Realtime Database:** todos os dados ficam dentro do usuário logado:
+
+```
+usuarios/
+└── {uid}/
+    ├── id, nome, celular, email, createdAt   ← perfil
+    ├── clients/{id}                          ← clientes
+    ├── processes/{id}                        ← processos
+    └── settings                              ← configurações
+```
+
+### 🔑 Regras de senha
+
+| Tela | Regra |
+|------|-------|
+| Cadastro | Mínimo 8 caracteres, 1 letra maiúscula, 1 número e 1 símbolo (ex.: `Teste@123`) |
+| Login | Só verifica se foi preenchida. Quem valida é o Firebase |
+
+### 🐞 Depurando erros de login/cadastro
+
+O código do erro do Firebase aparece no terminal do Expo:
+
+```
+Erro no login: auth/invalid-credential ...
+```
+
+| Código | Significado |
+|--------|-------------|
+| `auth/invalid-credential` | E-mail não cadastrado **ou** senha errada (o Firebase não diz qual) |
+| `auth/email-already-in-use` | E-mail já cadastrado |
+| `auth/too-many-requests` | Muitas tentativas. Aguarde alguns minutos |
+| `auth/network-request-failed` | Sem internet |
+
+Para conferir se a conta existe: **Firebase Console → viafacil-fe487 → Authentication → Users**.
+
+---
+
+## 📚 Documentação
+
+- [`docs/README.md`](docs/README.md) — índice da documentação
+- [`docs/HISTORICO_DE_MUDANCAS.md`](docs/HISTORICO_DE_MUDANCAS.md) — o que foi feito em cada aula
+- [`docs/MUDANCAS_IMPLEMENTADAS.md`](docs/MUDANCAS_IMPLEMENTADAS.md) — explicação detalhada do cadastro de usuário
+- [`web/README.md`](web/README.md) — versão web em HTML

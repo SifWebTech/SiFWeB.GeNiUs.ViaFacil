@@ -350,7 +350,7 @@ A integração mantém toda a segurança:
 
 ## 🎯 Próximos Passos
 
-1. **LoginScreen Mobile** - Usar mesmo padrão de serviço
+1. ~~**LoginScreen Mobile**~~ ✅ - Implementado no app (`src/screens/login_screen.tsx`)
 2. **LoginScreen Web** - Integrar autenticação
 3. **Verificação de Email** - Ambas as versões
 4. **Reset de Senha** - Ambas as versões

@@ -4,6 +4,11 @@
 **Versão:** 1.0  
 **Status:** ✅ Implementado e Testado
 
+> ℹ️ **Atualização 29/09/2026:** este documento descreve o **cadastro de usuário** (aula de 08/09).
+> O que veio depois (login, sessão salva, dashboard, clientes, processos) está em
+> [`HISTORICO_DE_MUDANCAS.md`](HISTORICO_DE_MUDANCAS.md).
+> A regra de senha do cadastro agora também exige **número** — as senhas de teste abaixo já foram ajustadas.
+
 ---
 
 ## 📊 Resumo Executivo
@@ -753,8 +758,8 @@ BOTÃO DESABILITADO (carregando):
 │    ├── Nome: "João Silva"                                   │
 │    ├── Celular: "(11) 98765-4321"                          │
 │    ├── Email: "joao@example.com"                           │
-│    ├── Senha: "Senha123456"                                │
-│    └── Confirmar: "Senha123456"                            │
+│    ├── Senha: "Senha@123456"                               │
+│    └── Confirmar: "Senha@123456"                           │
 └─────────────────────────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -875,14 +880,14 @@ error.message === 'Failed to fetch'
 ✓ Senha é validada no cliente (8+ chars) E servidor (6+ chars)
 ```
 
-### ⚠️ Ainda falta implementar:
+### ⚠️ Situação dos itens pendentes (atualizado em 29/09/2026):
 
 ```typescript
+✓ Autenticação no LoginScreen            (signInWithEmailAndPassword)
+✓ Verificação se está logado (persistence) (AsyncStorage / browserLocalPersistence)
+✓ Logout                                  (signOut no Dashboard)
 ✗ Verificação de email (enviar confirmação)
 ✗ Reset de senha (recuperação)
-✗ Autenticação no LoginScreen
-✗ Verificação se está logado (persistence)
-✗ Logout
 ```
 
 ---
@@ -928,8 +933,8 @@ Após um cadastro bem-sucedido, o banco fica assim:
 Nome: João Silva
 Celular: 11987654321 (sem máscara) ou (11) 98765-4321 (com)
 Email: joao@example.com
-Senha: Senha12345
-Confirmar: Senha12345
+Senha: Senha@12345
+Confirmar: Senha@12345
 
 Resultado esperado:
 ✓ Alert "Sucesso!"
@@ -946,8 +951,8 @@ Resultado esperado:
 Nome: Outro Nome
 Celular: 99999999999
 Email: joao@example.com  ← MESMO EMAIL
-Senha: Senha12345
-Confirmar: Senha12345
+Senha: Senha@12345
+Confirmar: Senha@12345
 
 Resultado esperado:
 ✗ Alert "Este e-mail já está cadastrado"
@@ -974,8 +979,8 @@ Resultado esperado:
 Nome: João Silva
 Celular: 11987654321
 Email: email-sem-arroba.com  ← Sem @
-Senha: Senha12345
-Confirmar: Senha12345
+Senha: Senha@12345
+Confirmar: Senha@12345
 
 Resultado esperado:
 ✗ Erro local: "Digite um e-mail válido."
@@ -1027,16 +1032,16 @@ Resultado esperado:
 
 ## 📞 Próximos Passos
 
-1. **Implementar LoginScreen** com `signInWithEmailAndPassword`
+1. ~~**Implementar LoginScreen** com `signInWithEmailAndPassword`~~ ✅
 2. **Adicionar Verificação de Email** com Firebase
 3. **Implementar Reset de Senha** (esqueci a senha)
-4. **Adicionar Persistence** (manter logado)
-5. **Implementar Logout**
+4. ~~**Adicionar Persistence** (manter logado)~~ ✅
+5. ~~**Implementar Logout**~~ ✅
 6. **Testes Automatizados** (Jest + React Testing Library)
 
 ---
 
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 2026-09-08  
-**Status:** ✅ Completo e Testado  
-**Próxima Revisão:** Após implementar LoginScreen
+**Última Atualização:** 2026-09-29  
+**Status:** ✅ Completo e Testado
