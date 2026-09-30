@@ -5,7 +5,16 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 // Inicializa autenticação do Firebase
-import { initializeAuth } from 'firebase/auth';
+import {
+    browserLocalPersistence,
+    // @ts-ignore existe no build React Native do Firebase, mas não nos tipos padrão
+    getReactNativePersistence,
+    initializeAuth,
+} from 'firebase/auth';
+
+// Guarda a sessão no dispositivo para o usuário não ser deslogado a cada reload
+import { Platform } from 'react-native';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
     apiKey: "AIzaSyACen7PWC0hYfVneL2w_ckqzn3o9ZgK5jQ",
@@ -22,7 +31,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Firebase Authentication
-export const auth = initializeAuth(app);
+export const auth = initializeAuth(app, {
+    persistence: Platform.OS === 'web'
+        ? browserLocalPersistence
+        : getReactNativePersistence(ReactNativeAsyncStorage),
+});
 
 // Realtime Database
 export const database = getDatabase(app);
