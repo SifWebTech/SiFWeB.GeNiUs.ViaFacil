@@ -5,6 +5,17 @@ Cada item traz o commit correspondente para consulta com `git show <commit>`.
 
 ---
 
+## 📅 30/09/2026 — Home após o login
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/screens/login_screen.tsx` | Após o login, `navigation.reset` abre a **Home** em vez do Dashboard |
+| `src/screens/home_screen.tsx` | Novo botão **"Abrir painel"** que leva ao Dashboard (onde ficam indicadores e logout) |
+
+Com isso a pendência de 28/09 (Home sem caminho de navegação) foi resolvida.
+
+---
+
 ## 📅 29/09/2026 — Login, sessão salva e documentação
 
 ### 🐞 Problema encontrado
@@ -85,8 +96,8 @@ export const auth = initializeAuth(app, {
 | `aplicarMascaraCpfCnpj`, `aplicarMascaraCelular`, `aplicarMascaraCep`, `aplicarMascaraData` | Formatam o texto enquanto o usuário digita |
 | `validarCampos(dados)` | Obrigatórios: nome, CPF (11) / CNPJ (14), celular, cidade e UF. E-mail e data são opcionais, mas validados se preenchidos |
 
-### ⏭️ Pendência
-A **Home** não é aberta por nenhuma tela ainda. Após o login o app vai para o **Dashboard**. Falta decidir se o login deve abrir a Home ou se ela será acessada pelo Dashboard.
+### ⏭️ Pendência (resolvida em 30/09)
+A **Home** não era aberta por nenhuma tela. Agora ela é a primeira tela após o login.
 
 ---
 

@@ -51,7 +51,7 @@ Documentação **COMPLETA** do cadastro de usuário (aula de 08/09) com:
 | Cadastro de processos | ✅ Pronto | `new_process_screen.tsx`, `officeData.ts` |
 | Relatórios | ✅ Pronto | `reports_screen.tsx` |
 | Configurações | ✅ Pronto | `settings_screen.tsx` |
-| Tela Home | 🟡 Criada, sem caminho até ela | `home_screen.tsx` |
+| Tela Home (abre após o login) | ✅ Pronto | `home_screen.tsx` |
 | Verificação de e-mail | ⬜ A fazer | — |
 | Reset de senha | ⬜ A fazer | — |
 | Listar/editar/excluir clientes na interface | ⬜ A fazer (o `ClienteService` já tem os métodos) | — |
@@ -106,7 +106,7 @@ Documentação **COMPLETA** do cadastro de usuário (aula de 08/09) com:
 ✅ Cadastro bem-sucedido · ❌ E-mail duplicado · ❌ Senha fraca · ❌ E-mail inválido
 
 **Login:**
-1. Entre com uma conta existente → abre o Dashboard
+1. Entre com uma conta existente → abre a Home ("Abrir painel" leva ao Dashboard)
 2. Recarregue o app (tecla `r` no terminal do Expo) → continua logado
 3. Faça logout no Dashboard → volta para o Login
 4. Senha errada → "E-mail ou senha incorretos" e o terminal mostra `Erro no login: auth/invalid-credential`
@@ -122,11 +122,10 @@ Os dados de cada usuário ficam em `usuarios/{uid}`, e o app só lê o caminho d
 
 ## 📞 Próximos Passos
 
-1. **Decidir o acesso à Home** - abrir após o login ou pelo Dashboard
-2. **Lista de clientes** - listar, editar e excluir usando o `ClienteService`
-3. **Reset de Senha** - "Esqueci minha senha"
-4. **Verificação de Email** - Confirmar conta
-5. **Testes Automatizados** - Jest + React Testing Library
+1. **Lista de clientes** - listar, editar e excluir usando o `ClienteService`
+2. **Reset de Senha** - "Esqueci minha senha"
+3. **Verificação de Email** - Confirmar conta
+4. **Testes Automatizados** - Jest + React Testing Library
 
 ---
 

@@ -48,11 +48,11 @@ npx expo start --tunnel
 ## 🗺️ Telas e navegação
 
 ```
-Splash → Main → Login ──► Dashboard ──► Novo cliente
-              └► Cadastro            ├─► Novo processo
-                                     ├─► Relatórios
-                                     └─► Configurações
-Home (botão "Novo cliente") — registrada, ainda sem caminho de navegação até ela
+Splash → Main → Login ──► Home ──► Novo cliente
+              └► Cadastro      └─► Dashboard ──► Novo cliente
+                                             ├─► Novo processo
+                                             ├─► Relatórios
+                                             └─► Configurações
 ```
 
 | Tela | Arquivo | O que faz |
@@ -60,9 +60,9 @@ Home (botão "Novo cliente") — registrada, ainda sem caminho de navegação at
 | Splash | `src/screens/splash_screen.tsx` | Abertura do app |
 | Main | `src/screens/main_screen.tsx` | Menu principal (consulta de empresa, ITs/normas, solicitar análise) e rodapé com Login/Cadastro |
 | Cadastro | `src/screens/register_screen.tsx` | Cria conta no Firebase Auth e salva o perfil em `usuarios/{uid}` |
-| Login | `src/screens/login_screen.tsx` | Entra com e-mail e senha e abre o Dashboard |
+| Login | `src/screens/login_screen.tsx` | Entra com e-mail e senha e abre a Home |
 | Dashboard | `src/screens/dashboard_screen.tsx` | Indicadores, prazos, atalhos e logout. Volta ao Login se não houver sessão |
-| Home | `src/screens/home_screen.tsx` | Botão "Novo cliente" |
+| Home | `src/screens/home_screen.tsx` | Primeira tela após o login: botões "Novo cliente" e "Abrir painel" |
 | Novo cliente | `src/screens/new_client_screen.tsx` | Cadastro de cliente usando o `ClienteService` |
 | Novo processo | `src/screens/new_process_screen.tsx` | Abre processo vinculado a um cliente |
 | Relatórios | `src/screens/reports_screen.tsx` | Gráficos por situação/tipo e atividade mensal, com filtro de período |
