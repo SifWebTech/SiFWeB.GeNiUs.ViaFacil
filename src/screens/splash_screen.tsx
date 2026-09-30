@@ -3,6 +3,7 @@ import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-n
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../../App';
+import { auth } from '../services/firebaseConfig';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ScreenFooter } from '../components/ScreenFooter';
 
@@ -14,14 +15,23 @@ const SPLASH_DURATION_MS = 5000;
 
 export default function SplashScreen({ navigation }: Props) {
     useEffect(() => {
-        const timer = setTimeout(() => {
+        let cancelado = false;
+
+        const timer = setTimeout(async () => {
+            // Espera o Firebase recuperar a sessão salva antes de decidir a próxima tela
+            await auth.authStateReady();
+            if (cancelado) return;
+
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Main' }],
+                routes: [{ name: auth.currentUser ? 'Home' : 'Main' }],
             });
         }, SPLASH_DURATION_MS);
 
-        return () => clearTimeout(timer);
+        return () => {
+            cancelado = true;
+            clearTimeout(timer);
+        };
     }, [navigation]);
 
     return (
