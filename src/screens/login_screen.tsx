@@ -28,25 +28,10 @@ function maskEmail(value: string) {
     return value.trim().toLowerCase().replace(/\s/g, '');
 }
 
+// No login só conferimos se a senha foi preenchida; as regras de força ficam no cadastro
 function validarSenha(senha: string): string {
     if (!senha) {
         return 'Digite sua senha.';
-    }
-
-    if (senha.length < 8) {
-        return 'A senha deve ter pelo menos 8 caracteres.';
-    }
-
-    if (!/[a-zA-Z]/.test(senha)) {
-        return 'A senha deve conter pelo menos uma letra.';
-    }
-
-    if (!/[0-9]/.test(senha)) {
-        return 'A senha deve conter pelo menos um número.';
-    }
-
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(senha)) {
-        return 'A senha deve conter pelo menos um símbolo.';
     }
 
     return '';
@@ -123,6 +108,7 @@ export default function LoginScreen({ navigation }: Props) {
                 routes: [{ name: 'Dashboard' }],
             });
         } catch (error: any) {
+            console.log('Erro no login:', error.code, error.message);
             let mensagemErro = 'Não foi possível realizar o login. Tente novamente.';
 
             // Tratamento de erros do Firebase

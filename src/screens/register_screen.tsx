@@ -99,6 +99,9 @@ export default function RegisterScreen({ navigation }: Props) {
         } else if (!uppercaseRegex.test(password)) {
             setPasswordError('A senha deve ter pelo menos uma letra maiúscula.');
             hasError = true;
+        } else if (!/[0-9]/.test(password)) {
+            setPasswordError('A senha deve ter pelo menos um número.');
+            hasError = true;
         } else if (!symbolRegex.test(password)) {
             setPasswordError('A senha deve ter pelo menos um símbolo.');
             hasError = true;
@@ -160,6 +163,7 @@ export default function RegisterScreen({ navigation }: Props) {
             setPassword('');
             setConfirmPassword('');
         } catch (error: any) {
+            console.log('Erro no cadastro:', error.code, error.message);
             let mensagemErro = 'Erro ao realizar cadastro';
 
             if (error.code === 'auth/email-already-in-use') {
