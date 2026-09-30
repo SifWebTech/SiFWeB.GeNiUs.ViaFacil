@@ -57,6 +57,7 @@ export default function NewClientScreen({ navigation }: Props) {
         </Section>
         <Section title="Observações"><Field label="Informações adicionais" value={draft.observacoes} onChangeText={setField('observacoes')} multiline /></Section>
         <Text style={{ color: colors.muted, fontSize: 12 }}>* Campos obrigatórios</Text>
-        <PrimaryButton label={saving ? 'Salvando...' : 'Cadastrar cliente'} onPress={() => void save()} disabled={saving} />
+        <PrimaryButton label={saving ? 'Salvando...' : 'Cadastrar cliente'} 
+        onPress={() => void save()} disabled={saving} />
     </OfficePage>;
 }
