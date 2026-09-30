@@ -105,7 +105,7 @@ export default function LoginScreen({ navigation }: Props) {
             // Login bem-sucedido - reset navegação
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Dashboard' }],
+                routes: [{ name: 'Home' }],
             });
         } catch (error: any) {
             console.log('Erro no login:', error.code, error.message);

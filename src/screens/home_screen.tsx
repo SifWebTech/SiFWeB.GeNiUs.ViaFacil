@@ -17,6 +17,11 @@ export default function HomeScreen({ navigation }: Props) {
                     icon="person-add-outline"
                     onPress={() => navigation.navigate('NewClient')}
                 />
+                <PrimaryButton
+                    label="Abrir painel"
+                    icon="grid-outline"
+                    onPress={() => navigation.navigate('Dashboard')}
+                />
             </View>
         </SafeAreaView>
     );
