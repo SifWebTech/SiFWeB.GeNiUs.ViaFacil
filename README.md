@@ -53,11 +53,13 @@ Splash → Main → Login ──► Home ──► Novo cliente
                                              ├─► Novo processo
                                              ├─► Relatórios
                                              └─► Configurações
+
+Splash ──(já logado)──► Home
 ```
 
 | Tela | Arquivo | O que faz |
 |------|---------|-----------|
-| Splash | `src/screens/splash_screen.tsx` | Abertura do app |
+| Splash | `src/screens/splash_screen.tsx` | Abertura do app (5 s). Vai para a Home se já houver sessão, senão para o Main |
 | Main | `src/screens/main_screen.tsx` | Menu principal (consulta de empresa, ITs/normas, solicitar análise) e rodapé com Login/Cadastro |
 | Cadastro | `src/screens/register_screen.tsx` | Cria conta no Firebase Auth e salva o perfil em `usuarios/{uid}` |
 | Login | `src/screens/login_screen.tsx` | Entra com e-mail e senha e abre a Home |

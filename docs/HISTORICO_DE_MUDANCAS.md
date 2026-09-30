@@ -11,6 +11,7 @@ Cada item traz o commit correspondente para consulta com `git show <commit>`.
 |---------|---------|
 | `src/screens/login_screen.tsx` | Após o login, `navigation.reset` abre a **Home** em vez do Dashboard |
 | `src/screens/home_screen.tsx` | Novo botão **"Abrir painel"** que leva ao Dashboard (onde ficam indicadores e logout) |
+| `src/screens/splash_screen.tsx` | Ao fim dos 5 s, espera o Firebase recuperar a sessão (`auth.authStateReady()`) e abre a **Home** se já houver usuário logado, ou o **Main** se não houver |
 
 Com isso a pendência de 28/09 (Home sem caminho de navegação) foi resolvida.
 

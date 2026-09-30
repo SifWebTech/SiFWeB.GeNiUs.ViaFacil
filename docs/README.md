@@ -107,7 +107,7 @@ Documentação **COMPLETA** do cadastro de usuário (aula de 08/09) com:
 
 **Login:**
 1. Entre com uma conta existente → abre a Home ("Abrir painel" leva ao Dashboard)
-2. Recarregue o app (tecla `r` no terminal do Expo) → continua logado
+2. Feche e abra o app (ou tecla `r` no terminal do Expo) → após a Splash, abre direto a Home
 3. Faça logout no Dashboard → volta para o Login
 4. Senha errada → "E-mail ou senha incorretos" e o terminal mostra `Erro no login: auth/invalid-credential`
 
