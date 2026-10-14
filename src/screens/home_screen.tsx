@@ -18,6 +18,11 @@ export default function HomeScreen({ navigation }: Props) {
                     onPress={() => navigation.navigate('NewClient')}
                 />
                 <PrimaryButton
+                    label="Meus clientes"
+                    icon="people-outline"
+                    onPress={() => navigation.navigate('Clients')}
+                />
+                <PrimaryButton
                     label="Abrir painel"
                     icon="grid-outline"
                     onPress={() => navigation.navigate('Dashboard')}

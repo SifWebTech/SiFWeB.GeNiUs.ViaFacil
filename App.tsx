@@ -9,6 +9,7 @@ import LoginScreen from './src/screens/login_screen';
 import RegisterScreen from './src/screens/register_screen';
 import HomeScreen from './src/screens/home_screen';
 import DashboardScreen from './src/screens/dashboard_screen';
+import ClientsScreen from './src/screens/clients_screen';
 import NewClientScreen from './src/screens/new_client_screen';
 import NewProcessScreen from './src/screens/new_process_screen';
 import ReportsScreen from './src/screens/reports_screen';
@@ -21,7 +22,9 @@ export type RootStackParamList = {
     Register: undefined;
     Home: undefined;
     Dashboard: undefined;
-    NewClient: undefined;
+    Clients: undefined;
+    // Sem parâmetro = novo cliente; com clienteId = edição do cliente
+    NewClient: { clienteId?: string } | undefined;
     NewProcess: undefined;
     Reports: undefined;
     Settings: undefined;
@@ -42,6 +45,7 @@ export default function App() {
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Dashboard" component={DashboardScreen} />
+                <Stack.Screen name="Clients" component={ClientsScreen} />
                 <Stack.Screen name="NewClient" component={NewClientScreen} />
                 <Stack.Screen name="NewProcess" component={NewProcessScreen} />
                 <Stack.Screen name="Reports" component={ReportsScreen} />

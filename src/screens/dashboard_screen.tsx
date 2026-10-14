@@ -313,6 +313,11 @@ export default function DashboardScreen({ navigation }: Props) {
                             onPress={() => navigation.navigate('NewClient')}
                         />
                         <ActionButton
+                            icon="people-outline"
+                            label="Clientes"
+                            onPress={() => navigation.navigate('Clients')}
+                        />
+                        <ActionButton
                             icon="document-text-outline"
                             label="Novo Processo"
                             onPress={() => navigation.navigate('NewProcess')}

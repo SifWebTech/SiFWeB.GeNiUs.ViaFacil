@@ -11,13 +11,28 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NewClient'>;
 type ClientDraft = Omit<ClienteModel, 'id' | 'createdAt' | 'idade' | 'dataAtividade'>;
 const blank: ClientDraft = { tipoCliente: 'Pessoa jurídica', nomeCliente: '', CpfCnpj: '', email: '', celular: '', contato: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '', cep: '', observacoes: '' };
 
-export default function NewClientScreen({ navigation }: Props) {
+export default function NewClientScreen({ navigation, route }: Props) {
+    // Com clienteId a tela funciona como edição
+    const clienteId = route.params?.clienteId;
     const [draft, setDraft] = useState<ClientDraft>(blank);
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(!!clienteId);
     useEffect(() => {
+        if (clienteId) return;
         try { return subscribeSettings(settings => setDraft(current => ({ ...current, cidade: current.cidade || settings.defaultCity, uf: current.uf || settings.defaultState })), () => {}); }
         catch { return; }
-    }, []);
+    }, [clienteId]);
+    useEffect(() => {
+        if (!clienteId) return;
+        ClienteService.obterPorId(clienteId)
+            .then(cliente => {
+                if (!cliente) { Alert.alert('Cliente não encontrado', 'Ele pode ter sido excluído.'); navigation.goBack(); return; }
+                const { id, createdAt, idade, dataAtividade, ...dados } = cliente;
+                setDraft(dados);
+            })
+            .catch(error => Alert.alert('Não foi possível carregar', error instanceof Error ? error.message : 'Tente novamente.'))
+            .finally(() => setLoading(false));
+    }, [clienteId, navigation]);
     const setField = (key: keyof ClientDraft, mask?: (value: string) => string) => (value: string) => setDraft(current => ({ ...current, [key]: mask ? mask(value) : value }));
     const maskDocument = (value: string) => ClienteService.aplicarMascaraCpfCnpj(draft.tipoCliente === 'Pessoa física' ? value.replace(/\D/g, '').slice(0, 11) : value);
 
@@ -29,13 +44,20 @@ export default function NewClientScreen({ navigation }: Props) {
         }
         setSaving(true);
         try {
+            if (clienteId) {
+                await ClienteService.atualizar(clienteId, dados);
+                Alert.alert('Cliente atualizado', 'As alterações foram salvas.');
+                navigation.goBack();
+                return;
+            }
             await ClienteService.criar(dados);
             Alert.alert('Cliente cadastrado', 'O cliente foi salvo com sucesso.', [{ text: 'Voltar ao dashboard', onPress: () => navigation.goBack() }, { text: 'Cadastrar outro', onPress: () => setDraft(blank) }]);
         } catch (error) { Alert.alert('Não foi possível salvar', error instanceof Error ? error.message : 'Tente novamente.'); }
         finally { setSaving(false); }
     }
 
-    return <OfficePage navigation={navigation} title="Novo cliente" subtitle="Dados de identificação, contato e endereço para acompanhamento dos processos.">
+    return <OfficePage navigation={navigation} title={clienteId ? 'Editar cliente' : 'Novo cliente'} subtitle="Dados de identificação, contato e endereço para acompanhamento dos processos.">
+        {loading ? <Text style={{ color: colors.muted }}>Carregando cliente...</Text> : null}
         <Section title="Identificação">
             <Choices<TipoCliente> label="Tipo de cliente" options={['Pessoa jurídica', 'Pessoa física']} value={draft.tipoCliente} onChange={value => setDraft(current => ({ ...current, tipoCliente: value, CpfCnpj: '' }))} />
             <Field label={draft.tipoCliente === 'Pessoa física' ? 'Nome completo' : 'Razão social'} value={draft.nomeCliente} onChangeText={setField('nomeCliente')} required />
@@ -57,7 +79,7 @@ export default function NewClientScreen({ navigation }: Props) {
         </Section>
         <Section title="Observações"><Field label="Informações adicionais" value={draft.observacoes} onChangeText={setField('observacoes')} multiline /></Section>
         <Text style={{ color: colors.muted, fontSize: 12 }}>* Campos obrigatórios</Text>
-        <PrimaryButton label={saving ? 'Salvando...' : 'Cadastrar cliente'} 
-        onPress={() => void save()} disabled={saving} />
+        <PrimaryButton label={saving ? 'Salvando...' : clienteId ? 'Salvar alterações' : 'Cadastrar cliente'}
+        onPress={() => void save()} disabled={saving || loading} />
     </OfficePage>;
 }
