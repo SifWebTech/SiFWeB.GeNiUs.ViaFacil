@@ -54,7 +54,8 @@ Documentação **COMPLETA** do cadastro de usuário (aula de 08/09) com:
 | Tela Home (abre após o login) | ✅ Pronto | `home_screen.tsx` |
 | Verificação de e-mail | ⬜ A fazer | — |
 | Reset de senha | ⬜ A fazer | — |
-| Listar/editar/excluir clientes na interface | ⬜ A fazer (o `ClienteService` já tem os métodos) | — |
+| Listar/editar/excluir clientes | ✅ Pronto | `clients_screen.tsx`, `new_client_screen.tsx` |
+| Botões do Menu Principal (análise, ITs, aprovação) | ⬜ A fazer | `main_screen.tsx` |
 
 ---
 
@@ -122,10 +123,11 @@ Os dados de cada usuário ficam em `usuarios/{uid}`, e o app só lê o caminho d
 
 ## 📞 Próximos Passos
 
-1. **Lista de clientes** - listar, editar e excluir usando o `ClienteService`
+1. ~~**Lista de clientes** - listar, editar e excluir usando o `ClienteService`~~ ✅
 2. **Reset de Senha** - "Esqueci minha senha"
-3. **Verificação de Email** - Confirmar conta
-4. **Testes Automatizados** - Jest + React Testing Library
+3. **Menu Principal** - telas de análise de empresa, consulta de ITs e solicitação de aprovação
+4. **Verificação de Email** - Confirmar conta
+5. **Testes Automatizados** - Jest + React Testing Library
 
 ---
 

@@ -5,6 +5,20 @@ Cada item traz o commit correspondente para consulta com `git show <commit>`.
 
 ---
 
+## 📅 13/10/2026 — Lista de clientes (listar, editar e excluir)
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/screens/clients_screen.tsx` | Nova tela **Clientes**: lista em ordem alfabética (`ClienteService.listarTodos`), busca por nome, CPF/CNPJ ou cidade, botões **Editar** e **Excluir** (com confirmação). Recarrega ao voltar para a tela (`useFocusEffect`) |
+| `src/screens/new_client_screen.tsx` | Recebe `clienteId` opcional: com ele, carrega o cliente (`obterPorId`), mostra "Editar cliente" e salva com `atualizar` |
+| `App.tsx` | Rota `Clients` e parâmetro `{ clienteId?: string }` na rota `NewClient` |
+| `src/screens/home_screen.tsx` | Botão **"Meus clientes"** |
+| `src/screens/dashboard_screen.tsx` | Ação rápida **"Clientes"** |
+
+Observação: excluir um cliente **não** apaga os processos dele. Os processos guardam uma cópia do nome do cliente, então continuam aparecendo no Dashboard e nos Relatórios.
+
+---
+
 ## 📅 30/09/2026 — Home após o login
 
 | Arquivo | Mudança |

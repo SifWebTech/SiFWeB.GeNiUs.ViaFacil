@@ -49,7 +49,9 @@ npx expo start --tunnel
 
 ```
 Splash → Main → Login ──► Home ──► Novo cliente
-              └► Cadastro      └─► Dashboard ──► Novo cliente
+              └► Cadastro      ├─► Clientes ──► Editar cliente / Novo cliente
+                               └─► Dashboard ──► Novo cliente
+                                             ├─► Clientes
                                              ├─► Novo processo
                                              ├─► Relatórios
                                              └─► Configurações
@@ -64,8 +66,9 @@ Splash ──(já logado)──► Home
 | Cadastro | `src/screens/register_screen.tsx` | Cria conta no Firebase Auth e salva o perfil em `usuarios/{uid}` |
 | Login | `src/screens/login_screen.tsx` | Entra com e-mail e senha e abre a Home |
 | Dashboard | `src/screens/dashboard_screen.tsx` | Indicadores, prazos, atalhos e logout. Volta ao Login se não houver sessão |
-| Home | `src/screens/home_screen.tsx` | Primeira tela após o login: botões "Novo cliente" e "Abrir painel" |
-| Novo cliente | `src/screens/new_client_screen.tsx` | Cadastro de cliente usando o `ClienteService` |
+| Home | `src/screens/home_screen.tsx` | Primeira tela após o login: botões "Novo cliente", "Meus clientes" e "Abrir painel" |
+| Clientes | `src/screens/clients_screen.tsx` | Lista os clientes com busca, e permite editar e excluir |
+| Novo cliente | `src/screens/new_client_screen.tsx` | Cadastro de cliente usando o `ClienteService`. Com `clienteId`, vira a tela de edição |
 | Novo processo | `src/screens/new_process_screen.tsx` | Abre processo vinculado a um cliente |
 | Relatórios | `src/screens/reports_screen.tsx` | Gráficos por situação/tipo e atividade mensal, com filtro de período |
 | Configurações | `src/screens/settings_screen.tsx` | Nome do escritório, prazos no dashboard, padrões de cadastro e bases de normas |
