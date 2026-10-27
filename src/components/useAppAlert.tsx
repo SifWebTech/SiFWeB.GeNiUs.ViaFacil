@@ -1,12 +1,16 @@
+// Fornece a mesma experiência de alerta no celular e no navegador.
 import { useCallback, useState } from 'react';
 import { Alert, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { AlertButton } from 'react-native';
 
+// Guarda o conteúdo que será exibido quando o modal web estiver aberto.
 type Dialog = { title: string; message: string; buttons: AlertButton[] };
 
 // Alert.alert não tem implementação na web. O modal mantém mensagens e ações visíveis.
 export function useAppAlert() {
+    // null significa que nenhum alerta está visível.
     const [dialog, setDialog] = useState<Dialog | null>(null);
+    // No celular usa o alerta nativo; na web salva os dados para abrir o modal.
     const showAlert = useCallback((title: string, message = '', buttons: AlertButton[] = [{ text: 'OK' }]) => {
         if (Platform.OS !== 'web') {
             Alert.alert(title, message, buttons);
@@ -15,12 +19,14 @@ export function useAppAlert() {
         setDialog({ title, message, buttons: buttons.length ? buttons : [{ text: 'OK' }] });
     }, []);
 
+    // Cria o modal somente quando existe uma mensagem pendente.
     const alertDialog = dialog ? <Modal visible transparent animationType="fade" onRequestClose={() => setDialog(null)}>
         <View style={styles.backdrop}>
             <View style={styles.dialog} accessibilityViewIsModal>
                 <Text accessibilityRole="header" style={styles.title}>{dialog.title}</Text>
                 <ScrollView style={styles.messageScroll}><Text style={styles.message}>{dialog.message}</Text></ScrollView>
                 <View style={styles.actions}>
+                    {/* Cada botão fecha o modal e executa sua ação opcional. */}
                     {dialog.buttons.map((button, index) => <TouchableOpacity
                         key={index}
                         accessibilityRole="button"
@@ -32,9 +38,11 @@ export function useAppAlert() {
         </View>
     </Modal> : null;
 
+    // A tela chama showAlert e inclui alertDialog dentro do seu JSX.
     return { showAlert, alertDialog };
 }
 
+// Aparência do fundo escuro, da caixa de mensagem e dos botões.
 const styles = StyleSheet.create({
     backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center', padding: 20 },
     dialog: { width: '100%', maxWidth: 420, maxHeight: '90%', backgroundColor: '#252525', borderColor: '#FF6A16', borderWidth: 1, borderRadius: 8, padding: 20, gap: 16 },

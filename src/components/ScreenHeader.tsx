@@ -1,3 +1,4 @@
+// Cabeçalho reutilizado nas telas públicas do aplicativo.
 import { Ionicons } from '@expo/vector-icons';
 import {
     StyleSheet,
@@ -9,12 +10,14 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../../App';
 
+// Propriedades que cada tela pode enviar ao cabeçalho.
 interface ScreenHeaderProps {
     navigation: NativeStackNavigationProp<RootStackParamList, keyof RootStackParamList>;
     title: string;
     showBackButton?: boolean;
 }
 
+// Exibe o título centralizado e, quando permitido, o botão de retorno.
 export function ScreenHeader({
     navigation,
     title,
@@ -23,6 +26,7 @@ export function ScreenHeader({
     return (
         <View style={styles.header}>
             {showBackButton && (
+                /* O botão retorna à tela inicial de apresentação. */
                 <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => navigation.navigate('Splash')}
@@ -38,11 +42,13 @@ export function ScreenHeader({
 
             <Text style={styles.title}>{title}</Text>
 
+            {/* Ocupa o mesmo espaço do botão para manter o título centralizado. */}
             <View style={styles.spacer} />
         </View>
     );
 }
 
+// Estilos visuais exclusivos do cabeçalho.
 const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',

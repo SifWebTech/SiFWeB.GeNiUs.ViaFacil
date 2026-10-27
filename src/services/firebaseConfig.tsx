@@ -1,10 +1,11 @@
-// Inicializa conexão com o Firebase
+// Este arquivo cria e exporta uma única conexão com os serviços do Firebase.
+// Importa a função que inicializa o aplicativo Firebase.
 import { initializeApp } from 'firebase/app';
 
-// Inicializa conexão com o banco de dados
+// Importa o Realtime Database usado para guardar os dados do sistema.
 import { getDatabase } from 'firebase/database';
 
-// Inicializa autenticação do Firebase
+// Importa a autenticação e os tipos de persistência de sessão.
 import {
     browserLocalPersistence,
     // @ts-ignore existe no build React Native do Firebase, mas não nos tipos padrão
@@ -12,10 +13,11 @@ import {
     initializeAuth,
 } from 'firebase/auth';
 
-// Guarda a sessão no dispositivo para o usuário não ser deslogado a cada reload
+// No celular, o AsyncStorage mantém a sessão mesmo depois de fechar o app.
 import { Platform } from 'react-native';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
+// Identifica o projeto ViaFácil dentro da plataforma Firebase.
 const firebaseConfig = {
     apiKey: "AIzaSyACen7PWC0hYfVneL2w_ckqzn3o9ZgK5jQ",
     authDomain: "viafacil-fe487.firebaseapp.com",
@@ -27,15 +29,15 @@ const firebaseConfig = {
     measurementId: "G-QF75CJV6RS"
 };
 
-// Inicializa o Firebase
+// Cria o aplicativo Firebase com as configurações acima.
 const app = initializeApp(firebaseConfig);
 
-// Firebase Authentication
+// Na web a sessão fica no navegador; no celular fica no AsyncStorage.
 export const auth = initializeAuth(app, {
     persistence: Platform.OS === 'web'
         ? browserLocalPersistence
         : getReactNativePersistence(ReactNativeAsyncStorage),
 });
 
-// Realtime Database
+// Exporta o banco para que os serviços possam ler e gravar dados.
 export const database = getDatabase(app);

@@ -1,3 +1,4 @@
+// Rodapé compartilhado que oferece atalhos conforme o estado da sessão.
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,13 +13,16 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { auth } from '../services/firebaseConfig';
 
+// O rodapé precisa da navegação para abrir as telas indicadas pelos botões.
 interface ScreenFooterProps {
     navigation: NativeStackNavigationProp<RootStackParamList, keyof RootStackParamList>;
 }
 
 export function ScreenFooter({ navigation }: ScreenFooterProps) {
+    // Controla se o atalho do Dashboard deve aparecer.
     const [signedIn, setSignedIn] = useState(false);
 
+    // Observa login e logout; o retorno do Firebase cancela a escuta ao desmontar.
     useEffect(() => onAuthStateChanged(auth, user => setSignedIn(Boolean(user))), []);
 
     return (
@@ -26,6 +30,7 @@ export function ScreenFooter({ navigation }: ScreenFooterProps) {
             <Text style={styles.footerTitle}>SiFWeB.GeNiUs.ViaFacil</Text>
             <Text style={styles.footerText}>Acesso seguro ao sistema</Text>
 
+            {/* Atalhos públicos disponíveis para qualquer visitante. */}
             <View style={styles.actions}>
                 <TouchableOpacity
                     activeOpacity={0.75}
@@ -49,6 +54,7 @@ export function ScreenFooter({ navigation }: ScreenFooterProps) {
                     <Text style={styles.actionText}>Cadastro</Text>
                 </TouchableOpacity>
 
+                {/* O Dashboard aparece somente quando existe uma sessão ativa. */}
                 {signedIn && <TouchableOpacity
                     activeOpacity={0.75}
                     onPress={() => navigation.navigate('Dashboard')}
@@ -62,6 +68,7 @@ export function ScreenFooter({ navigation }: ScreenFooterProps) {
     );
 }
 
+// Estilos do rodapé e dos seus botões de navegação.
 const styles = StyleSheet.create({
     footer: {
         width: '100%',

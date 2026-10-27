@@ -1,3 +1,4 @@
+// Serviço responsável por validar, formatar e persistir clientes no Firebase.
 import { child, get, push, ref, remove, update } from 'firebase/database';
 import { ClienteModel } from '../model/ClienteModel';
 import { auth, database } from './firebaseConfig';
@@ -86,6 +87,7 @@ function paraModelo(id: string, r: Partial<ClienteRegistro>): ClienteModel {
 
 export class ClienteService {
 
+    // Insere as barras de uma data no formato dd/mm/aaaa enquanto o usuário digita.
     static aplicarMascaraData(texto: string): string {
         let limpo = texto.replace(/\D/g, '');
         if (limpo.length > 8) limpo = limpo.substring(0, 8);
@@ -94,6 +96,7 @@ export class ClienteService {
         return `${limpo.substring(0, 2)}/${limpo.substring(2, 4)}/${limpo.substring(4)}`;
     }
 
+    // Remove caracteres inválidos e monta telefone fixo ou celular com DDD.
     static aplicarMascaraCelular(texto: string): string {
         let limpo = texto.replace(/\D/g, '');
         if (limpo.length > 11) limpo = limpo.substring(0, 11);
@@ -103,7 +106,7 @@ export class ClienteService {
         return `(${limpo.substring(0, 2)}) ${limpo.substring(2, 7)}-${limpo.substring(7)}`;
     }
 
-    // CPF (11 dígitos) ou CNPJ (14 dígitos)
+    // Formata CPF com 11 dígitos ou CNPJ com 14 dígitos.
     static aplicarMascaraCpfCnpj(texto: string): string {
         let limpo = texto.replace(/\D/g, '');
         if (limpo.length > 14) limpo = limpo.substring(0, 14);
@@ -122,11 +125,13 @@ export class ClienteService {
             .replace(/(\d{4})(\d)/, '$1-$2');
     }
 
+    // Limita o CEP a oito números e acrescenta o hífen.
     static aplicarMascaraCep(texto: string): string {
         const limpo = texto.replace(/\D/g, '').substring(0, 8);
         return limpo.length <= 5 ? limpo : `${limpo.substring(0, 5)}-${limpo.substring(5)}`;
     }
 
+    // Confere tamanho, sequências repetidas e os dois dígitos verificadores.
     static validarCpfCnpj(texto: string, tipoCliente: ClienteModel['tipoCliente']): boolean {
         const documento = texto.replace(/[.\/\-\s]/g, '');
         const pessoaFisica = tipoCliente === 'Pessoa física';
@@ -135,10 +140,12 @@ export class ClienteService {
             return false;
         }
 
+        // Cada linha contém os pesos usados para calcular um dígito verificador.
         const pesos = pessoaFisica
             ? [[10, 9, 8, 7, 6, 5, 4, 3, 2], [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]]
             : [[5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]];
 
+        // Os dois cálculos precisam coincidir com os dígitos informados.
         return pesos.every((sequencia, indice) => {
             const soma = sequencia.reduce((total, peso, posicao) => total + Number(documento[posicao]) * peso, 0);
             const resto = soma % 11;
@@ -147,13 +154,16 @@ export class ClienteService {
         });
     }
 
+    // Reúne todos os erros do formulário para a tela mostrar de uma só vez.
     static validarCampos(dados: ClienteModel): { valido: boolean; erros: ErrosCliente } {
         const erros: ErrosCliente = {};
 
+        // Nome, documento, telefone, cidade e UF são obrigatórios.
         if (!dados.nomeCliente || !dados.nomeCliente.trim()) {
             erros.nomeCliente = 'Campo obrigatório.';
         }
 
+        // O tamanho esperado do documento depende do tipo de cliente.
         const pessoaFisica = dados.tipoCliente === 'Pessoa física';
         const cpfCnpj = (dados.CpfCnpj || '').replace(/\D/g, '');
         if (!cpfCnpj) {
@@ -189,12 +199,14 @@ export class ClienteService {
             erros.dataAtividade = 'Data inválida (dd/mm/aaaa).';
         }
 
+        // Retorna válido somente quando nenhum campo gerou mensagem de erro.
         return {
             valido: Object.keys(erros).length === 0,
             erros,
         };
     }
 
+    // Cria um cliente novo e devolve o objeto com ID e data preenchidos.
     static async criar(dados: ClienteModel): Promise<ClienteModel> {
         try {
             // Gera uma chave/ID única no nó "clients" do usuário
@@ -221,6 +233,7 @@ export class ClienteService {
         }
     }
 
+    // Busca todos os clientes pertencentes ao usuário conectado.
     static async listarTodos(): Promise<ClienteModel[]> {
         try {
             const snapshot = await get(child(ref(database), caminhoClientes()));
@@ -239,6 +252,7 @@ export class ClienteService {
         }
     }
 
+    // Busca um cadastro específico; null indica que o ID não existe.
     static async obterPorId(id: string): Promise<ClienteModel | null> {
         try {
             const snapshot = await get(child(ref(database), caminhoClientes(id)));
@@ -250,6 +264,7 @@ export class ClienteService {
         }
     }
 
+    // Altera somente os campos enviados e preserva o restante do cadastro.
     static async atualizar(
         id: string,
         dados: Partial<Omit<ClienteModel, 'id'>>
@@ -263,6 +278,7 @@ export class ClienteService {
         }
     }
 
+    // Remove definitivamente o cliente indicado dentro da conta atual.
     static async excluir(id: string): Promise<boolean> {
         try {
             await remove(ref(database, caminhoClientes(id)));
