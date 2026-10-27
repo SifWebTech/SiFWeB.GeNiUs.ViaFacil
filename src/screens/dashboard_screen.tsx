@@ -1,3 +1,4 @@
+// Painel principal com indicadores calculados a partir do Firebase em tempo real.
 import { useState, useEffect } from 'react';
 import type { ComponentProps } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,12 +21,14 @@ import { defaultSettings, subscribeClients, subscribeProcesses, subscribeSetting
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 type IconName = ComponentProps<typeof Ionicons>['name'];
+// Identificadores aceitos pela navegação interna do painel.
 type DashboardTabId =
     | 'home'
     | 'clientesProcessos'
     | 'alvarasPrazos'
     | 'sair';
 
+// Estrutura dos números e prazos apresentados ao usuário.
 interface DashboardStats {
     totalClientes: number;
     clientesCadastrados: number;
@@ -41,17 +44,20 @@ interface DashboardStats {
 }
 
 export default function DashboardScreen({ navigation }: Props) {
+    // Aba selecionada e dados recebidos do banco.
     const [activeTab, setActiveTab] = useState<DashboardTabId>('home');
     const [clients, setClients] = useState<ClientRecord[]>([]);
     const [processes, setProcesses] = useState<ProcessRecord[]>([]);
     const [settings, setSettings] = useState(defaultSettings);
     const [dataError, setDataError] = useState('');
+    // Calcula os indicadores novamente a cada renderização com os dados atuais.
     const stats: DashboardStats = {
         totalClientes: clients.length,
         clientesCadastrados: new Set(processes.map(item => item.clientId)).size,
         processos: processes.length,
         alvarasCompletos: processes.filter(item => item.status === 'Aprovado').length,
         alvarasPendentes: processes.filter(item => item.status === 'Pendência').length,
+        // Mantém apenas prazos não aprovados dentro da antecedência configurada.
         prazos: (settings.notificationsEnabled ? processes : []).filter(item => item.dueDate && item.status !== 'Aprovado').map(item => ({
             id: item.id,
             nome: `${item.kind} - ${item.clientName}`,
@@ -60,11 +66,14 @@ export default function DashboardScreen({ navigation }: Props) {
         })).filter(item => Number.isFinite(item.dias) && item.dias <= settings.deadlineAlertDays).sort((a, b) => a.dias - b.dias),
     };
 
+    // Observa autenticação e inicia as três assinaturas de dados após o login.
     useEffect(() => {
+        // As referências permitem cancelar assinaturas antigas com segurança.
         let stopClients: (() => void) | undefined;
         let stopProcesses: (() => void) | undefined;
         let stopSettings: (() => void) | undefined;
         const stopAuth = onAuthStateChanged(auth, user => {
+            // Sempre encerra escutas da sessão anterior antes de reagir à nova.
             stopClients?.();
             stopProcesses?.();
             stopSettings?.();
@@ -72,11 +81,13 @@ export default function DashboardScreen({ navigation }: Props) {
             stopProcesses = undefined;
             stopSettings = undefined;
 
+            // Sem usuário, limpa o histórico e abre a tela de login.
             if (!user) {
                 navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
                 return;
             }
 
+            // Com usuário, recebe clientes, processos e configurações em tempo real.
             setDataError('');
             try {
                 stopClients = subscribeClients(setClients, error => setDataError(error.message));
@@ -86,6 +97,7 @@ export default function DashboardScreen({ navigation }: Props) {
                 setDataError(error instanceof Error ? error.message : 'Erro ao carregar dados.');
             }
         });
+        // Evita escutas duplicadas quando a tela é fechada.
         return () => {
             stopAuth();
             stopClients?.();
@@ -94,6 +106,7 @@ export default function DashboardScreen({ navigation }: Props) {
         };
     }, [navigation]);
 
+    // Encerra a sessão no Firebase e retorna ao login.
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -105,6 +118,7 @@ export default function DashboardScreen({ navigation }: Props) {
         }
     };
 
+    // Configuração dos botões que trocam a seção visível no painel.
     const dashboardTabs: {
         id: DashboardTabId;
         label: string;
@@ -142,9 +156,11 @@ export default function DashboardScreen({ navigation }: Props) {
         },
     ];
 
+    // Localiza título e ícone correspondentes à aba atual.
     const activeTabData =
         dashboardTabs.find((tab) => tab.id === activeTab) ?? dashboardTabs[0];
 
+    // Monta o cabeçalho, a navegação lateral/inferior e o conteúdo da aba.
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScreenHeader navigation={navigation} title="Dashboard" />
@@ -390,6 +406,7 @@ export default function DashboardScreen({ navigation }: Props) {
     );
 }
 
+// Propriedades necessárias para um cartão numérico do painel.
 interface KPICardProps {
     icon: string;
     title: string;
@@ -398,6 +415,7 @@ interface KPICardProps {
     bgColor: string;
 }
 
+// Cartão pequeno que mostra um indicador, seu ícone e sua cor.
 function KPICard({ icon, title, value, color, bgColor }: KPICardProps) {
     return (
         <View style={[styles.kpiCard, { backgroundColor: bgColor }]}>
@@ -410,6 +428,7 @@ function KPICard({ icon, title, value, color, bgColor }: KPICardProps) {
     );
 }
 
+// Dados esperados pelo cartão de prazo.
 interface PrazoCardProps {
     prazo: {
         id: string;
@@ -419,7 +438,9 @@ interface PrazoCardProps {
     };
 }
 
+// Destaca prazos mais próximos com cores de atenção diferentes.
 function PrazoCard({ prazo }: PrazoCardProps) {
+    // Até cinco dias é urgente; de seis a dez dias gera aviso.
     const isUrgent = prazo.dias <= 5;
     const isWarning = prazo.dias <= 10 && prazo.dias > 5;
 
@@ -457,12 +478,14 @@ function PrazoCard({ prazo }: PrazoCardProps) {
     );
 }
 
+// Propriedades de um atalho de ação rápida.
 interface ActionButtonProps {
     icon: string;
     label: string;
     onPress: () => void;
 }
 
+// Botão reutilizável que abre outra funcionalidade do aplicativo.
 function ActionButton({ icon, label, onPress }: ActionButtonProps) {
     return (
         <TouchableOpacity style={styles.actionButton} activeOpacity={0.7} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
@@ -474,6 +497,7 @@ function ActionButton({ icon, label, onPress }: ActionButtonProps) {
     );
 }
 
+// Estilos completos do painel, cartões, abas, prazos e ações.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,

@@ -1,3 +1,4 @@
+// Tela de abertura que decide o destino conforme a sessão do Firebase.
 import { useEffect } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,10 +12,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 const firefighterImage = require('../../assets/images/bombeiro_chamas_subindo_laterais.gif');
 
+// A apresentação permanece visível por cinco segundos.
 const SPLASH_DURATION_MS = 5000;
 
 export default function SplashScreen({ navigation }: Props) {
+    // Agenda a navegação e cancela o temporizador se a tela for desmontada.
     useEffect(() => {
+        // Impede navegação tardia depois que o componente deixou a tela.
         let cancelado = false;
 
         const timer = setTimeout(async () => {
@@ -22,6 +26,7 @@ export default function SplashScreen({ navigation }: Props) {
             await auth.authStateReady();
             if (cancelado) return;
 
+            // Substitui o histórico para evitar voltar à Splash pelo botão físico.
             navigation.reset({
                 index: 0,
                 routes: [{ name: auth.currentUser ? 'Home' : 'Main' }],
@@ -34,6 +39,7 @@ export default function SplashScreen({ navigation }: Props) {
         };
     }, [navigation]);
 
+    // Apresenta a marca e um resumo dos recursos enquanto a sessão é recuperada.
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScreenHeader navigation={navigation} title="AVCB e CLCB Simples e Fácil" />
@@ -75,6 +81,7 @@ export default function SplashScreen({ navigation }: Props) {
     );
 }
 
+// Estilos da apresentação, imagem e bloco de recursos.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,

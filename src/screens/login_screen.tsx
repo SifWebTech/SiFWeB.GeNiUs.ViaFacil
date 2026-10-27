@@ -1,6 +1,6 @@
+// Tela de entrada que autentica e-mail e senha no Firebase.
 import { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
 import {
     ActivityIndicator,
     Image,
@@ -21,9 +21,11 @@ import { ScreenFooter } from '../components/ScreenFooter';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
+// Expressão simples para bloquear formatos claramente inválidos antes do Firebase.
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const firefighterImage = require('../../assets/images/bombeiro_chamas_subindo_laterais.gif');
 
+// Normaliza o e-mail para evitar espaços e diferenças entre maiúsculas e minúsculas.
 function maskEmail(value: string) {
     return value.trim().toLowerCase().replace(/\s/g, '');
 }
@@ -38,6 +40,7 @@ function validarSenha(senha: string): string {
 }
 
 export default function LoginScreen({ navigation }: Props) {
+    // Valores digitados, mensagens de validação e estados visuais da tela.
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState('');
@@ -46,6 +49,7 @@ export default function LoginScreen({ navigation }: Props) {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Atualiza o e-mail e remove o erro assim que o usuário corrige o campo.
     function handleEmailChange(value: string) {
         const maskedEmail = maskEmail(value);
         setEmail(maskedEmail);
@@ -55,6 +59,7 @@ export default function LoginScreen({ navigation }: Props) {
         }
     }
 
+    // Atualiza a senha e limpa a mensagem antiga do campo.
     function handlePasswordChange(value: string) {
         setPassword(value);
 
@@ -63,6 +68,7 @@ export default function LoginScreen({ navigation }: Props) {
         }
     }
 
+    // Valida os campos, chama o Firebase e trata os códigos de erro conhecidos.
     async function handleLogin() {
         const normalizedEmail = maskEmail(email);
         let valido = true;
@@ -130,6 +136,7 @@ export default function LoginScreen({ navigation }: Props) {
         }
     }
 
+    // Exibe formulário, mensagens e acesso ao cadastro de uma nova conta.
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScreenHeader navigation={navigation} title="Login" />
@@ -225,6 +232,7 @@ export default function LoginScreen({ navigation }: Props) {
     );
 }
 
+// Estilos dos campos, mensagens, botão e imagem da tela de login.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,

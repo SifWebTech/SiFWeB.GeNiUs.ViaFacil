@@ -1,3 +1,4 @@
+// Formulário usado tanto para cadastrar quanto para editar um cliente.
 import { useAppAlert } from '../components/useAppAlert';
 import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
@@ -9,7 +10,9 @@ import { ClienteService } from '../services/ClienteService';
 import type { ClienteModel, TipoCliente } from '../model/ClienteModel';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewClient'>;
+// Remove campos criados pelo banco para formar o estado editável do formulário.
 type ClientDraft = Omit<ClienteModel, 'id' | 'createdAt' | 'idade' | 'dataAtividade'>;
+// Valores usados ao abrir um cadastro novo ou limpar o formulário.
 const blank: ClientDraft = { tipoCliente: 'Pessoa jurídica', nomeCliente: '', CpfCnpj: '', email: '', celular: '', contato: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '', cep: '', observacoes: '' };
 
 export default function NewClientScreen({ navigation, route }: Props) {
@@ -20,11 +23,13 @@ export default function NewClientScreen({ navigation, route }: Props) {
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(!!clienteId);
     const [loadFailed, setLoadFailed] = useState(false);
+    // Em novo cadastro, preenche cidade e UF com os padrões das configurações.
     useEffect(() => {
         if (clienteId) return;
         try { return subscribeSettings(settings => setDraft(current => ({ ...current, cidade: current.cidade || settings.defaultCity, uf: current.uf || settings.defaultState })), () => {}); }
         catch { return; }
     }, [clienteId]);
+    // Em edição, carrega o cliente indicado pelo parâmetro da rota.
     useEffect(() => {
         if (!clienteId) return;
         ClienteService.obterPorId(clienteId)
@@ -36,9 +41,12 @@ export default function NewClientScreen({ navigation, route }: Props) {
             .catch(error => { setLoadFailed(true); showAlert('Não foi possível carregar', error instanceof Error ? error.message : 'Tente novamente.', [{ text: 'Voltar', onPress: () => navigation.goBack() }]); })
             .finally(() => setLoading(false));
     }, [clienteId, navigation, showAlert]);
+    // Cria funções de atualização para qualquer campo e aplica máscara quando enviada.
     const setField = (key: keyof ClientDraft, mask?: (value: string) => string) => (value: string) => setDraft(current => ({ ...current, [key]: mask ? mask(value) : value }));
+    // Pessoa física aceita no máximo 11 dígitos; pessoa jurídica aceita até 14.
     const maskDocument = (value: string) => ClienteService.aplicarMascaraCpfCnpj(draft.tipoCliente === 'Pessoa física' ? value.replace(/\D/g, '').slice(0, 11) : value);
 
+    // Valida os dados e escolhe entre criar um registro ou atualizar o existente.
     async function save() {
         const dados: ClientDraft = { ...draft, nomeCliente: draft.nomeCliente.trim(), email: draft.email.trim(), celular: draft.celular.trim(), cidade: draft.cidade.trim(), uf: draft.uf.trim() };
         const { valido, erros } = ClienteService.validarCampos(dados);
@@ -47,6 +55,7 @@ export default function NewClientScreen({ navigation, route }: Props) {
         }
         setSaving(true);
         try {
+            // A presença de clienteId identifica o modo de edição.
             if (clienteId) {
                 await ClienteService.atualizar(clienteId, dados);
                 showAlert('Cliente atualizado', 'As alterações foram salvas.', [{ text: 'Voltar', onPress: () => navigation.goBack() }]);
@@ -58,6 +67,7 @@ export default function NewClientScreen({ navigation, route }: Props) {
         finally { setSaving(false); }
     }
 
+    // O texto dos campos e do botão muda automaticamente no modo de edição.
     return <OfficePage navigation={navigation} title={clienteId ? 'Editar cliente' : 'Novo cliente'} subtitle="Dados de identificação, contato e endereço para acompanhamento dos processos.">
         {loading ? <Text style={{ color: colors.muted }}>Carregando cliente...</Text> : null}
         <Section title="Identificação">
@@ -86,3 +96,4 @@ export default function NewClientScreen({ navigation, route }: Props) {
         {alertDialog}
     </OfficePage>;
 }
+    // Controla os dados digitados e impede ações durante carregamento ou gravação.

@@ -1,3 +1,4 @@
+// Tela que valida os dados e cria uma conta no Firebase.
 import { useAppAlert } from '../components/useAppAlert';
 import { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,15 +21,18 @@ import { ScreenFooter } from '../components/ScreenFooter';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
+// Regras locais usadas antes de enviar o cadastro ao Firebase.
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uppercaseRegex = /[A-Z]/;
 const symbolRegex = /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/;'`~]/;
 const firefighterImage = require('../../assets/images/bombeiro_chamas_subindo_laterais.gif');
 
+// Remove espaços e padroniza letras do e-mail.
 function maskEmail(value: string) {
     return value.trim().toLowerCase().replace(/\s/g, '');
 }
 
+// Formata o telefone enquanto limita a entrada a onze dígitos.
 function maskPhone(value: string) {
     const digits = value.replace(/\D/g, '').slice(0, 11);
 
@@ -45,6 +49,7 @@ function maskPhone(value: string) {
 
 export default function RegisterScreen({ navigation }: Props) {
     const { showAlert, alertDialog } = useAppAlert();
+    // Campos digitados no formulário.
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -59,9 +64,12 @@ export default function RegisterScreen({ navigation }: Props) {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [carregando, setCarregando] = useState(false);
 
+    // Confere todos os campos antes de chamar o serviço de cadastro.
     async function handleSubmit() {
+        // Valores normalizados são usados tanto na validação quanto no Firebase.
         const normalizedEmail = maskEmail(email);
         const phoneDigits = phone.replace(/\D/g, '');
+        // hasError acumula falhas para validar todos os campos em uma tentativa.
         let hasError = false;
 
         if (!name.trim()) {
@@ -120,6 +128,7 @@ export default function RegisterScreen({ navigation }: Props) {
             setConfirmPasswordError('');
         }
 
+        // Somente envia quando nenhuma regra local encontrou problema.
         if (!hasError) {
             const celularSemMascara = phoneDigits;
             await cadastrarUsuario(
@@ -131,6 +140,7 @@ export default function RegisterScreen({ navigation }: Props) {
         }
     }
 
+    // Encapsula a chamada ao serviço e traduz erros do Firebase para português.
     async function cadastrarUsuario(
         nome: string,
         celularSemMascara: string,
@@ -181,6 +191,7 @@ export default function RegisterScreen({ navigation }: Props) {
         }
     }
 
+    // Exibe o formulário completo e o indicador durante o cadastro.
     return (
         <SafeAreaView style={styles.safeArea}>
             {alertDialog}
@@ -344,6 +355,7 @@ export default function RegisterScreen({ navigation }: Props) {
     );
 }
 
+// Estilos do formulário, campos, erros, senhas e botão.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -451,3 +463,5 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 });
+    // Mensagens individuais exibidas abaixo de campos inválidos.
+    // Controla visibilidade das senhas e bloqueia envio repetido.

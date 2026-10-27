@@ -1,3 +1,4 @@
+// Tela que lê e grava as preferências do escritório no Firebase.
 import { useAppAlert } from '../components/useAppAlert';
 import { useEffect, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
@@ -9,18 +10,22 @@ import { defaultSettings, saveSettings, subscribeSettings, type OfficeSettings }
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export default function SettingsScreen({ navigation }: Props) {
+    // Começa com valores seguros até os dados reais chegarem do Firebase.
     const { showAlert, alertDialog } = useAppAlert();
     const [settings, setSettings] = useState<OfficeSettings>(defaultSettings);
     const [alertDaysInput, setAlertDaysInput] = useState(String(defaultSettings.deadlineAlertDays));
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    // Atualiza qualquer propriedade textual sem repetir uma função por campo.
     const setField = (key: keyof OfficeSettings) => (value: string) => setSettings(current => ({ ...current, [key]: value }));
 
+    // Escuta alterações feitas nesta ou em outra sessão em tempo real.
     useEffect(() => {
         try { return subscribeSettings(value => { setSettings(value); setAlertDaysInput(String(value.deadlineAlertDays)); }, value => setError(value.message)); }
         catch (value) { setError(value instanceof Error ? value.message : 'Erro ao carregar configurações.'); }
     }, []);
 
+    // Valida a antecedência, normaliza a UF e persiste todas as preferências.
     async function save() {
         const days = Number(alertDaysInput);
         if (!alertDaysInput.trim() || !Number.isInteger(days) || days < 0 || days > 365) { showAlert('Prazo inválido', 'Informe um número de 0 a 365 dias.'); return; }
@@ -30,6 +35,7 @@ export default function SettingsScreen({ navigation }: Props) {
         finally { setSaving(false); }
     }
 
+    // Organiza preferências do app, padrões de cadastro e bases de consulta.
     return <OfficePage navigation={navigation} title="Configurações" subtitle="Preferências da conta, padrões dos cadastros e fontes de consulta.">
         {error ? <Text style={{ color: colors.red }}>{error}</Text> : null}
         <Section title="Aplicativo e escritório"><Field label="Nome do escritório" value={settings.officeName} onChangeText={setField('officeName')} /><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}><Text style={{ color: colors.text, flex: 1 }}>Mostrar prazos no dashboard</Text><Switch value={settings.notificationsEnabled} onValueChange={value => setSettings(current => ({ ...current, notificationsEnabled: value }))} trackColor={{ true: colors.orange }} /></View><Field label="Antecedência dos prazos (dias)" value={alertDaysInput} onChangeText={setAlertDaysInput} keyboardType="numeric" /></Section>

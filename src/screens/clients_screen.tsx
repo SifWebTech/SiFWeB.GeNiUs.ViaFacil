@@ -1,3 +1,4 @@
+// Lista os clientes do Firebase e oferece busca, edição e exclusão.
 import { useAppAlert } from '../components/useAppAlert';
 import { useCallback, useMemo, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -12,12 +13,15 @@ import type { ClienteModel } from '../model/ClienteModel';
 type Props = NativeStackScreenProps<RootStackParamList, 'Clients'>;
 
 export default function ClientsScreen({ navigation }: Props) {
+    // Fornece alertas compatíveis com celular e navegador.
     const { showAlert, alertDialog } = useAppAlert();
+    // Guarda a lista completa, o texto buscado e o estado do carregamento.
     const [clientes, setClientes] = useState<ClienteModel[]>([]);
     const [busca, setBusca] = useState('');
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState('');
 
+    // Faz uma leitura atual dos clientes e os ordena alfabeticamente.
     async function carregar() {
         setErro('');
         try {
@@ -30,6 +34,7 @@ export default function ClientsScreen({ navigation }: Props) {
     // Recarrega sempre que a tela volta a ficar visível (ex.: depois de editar um cliente)
     useFocusEffect(useCallback(() => { void carregar(); }, []));
 
+    // Filtra localmente sem realizar uma nova consulta ao Firebase a cada tecla.
     const filtrados = useMemo(() => {
         const termo = busca.trim().toLowerCase();
         const digitos = termo.replace(/\D/g, '');
@@ -40,6 +45,7 @@ export default function ClientsScreen({ navigation }: Props) {
             || (digitos !== '' && cliente.CpfCnpj.replace(/\D/g, '').includes(digitos)));
     }, [clientes, busca]);
 
+    // Pede confirmação antes de remover o registro do Firebase.
     function excluir(cliente: ClienteModel) {
         showAlert('Excluir cliente', `Deseja excluir "${cliente.nomeCliente}"? Essa ação não pode ser desfeita.`, [{ text: 'Cancelar', style: 'cancel' }, { text: 'Excluir', style: 'destructive', onPress: async () => {
             try {
@@ -49,6 +55,7 @@ export default function ClientsScreen({ navigation }: Props) {
         } }]);
     }
 
+    // Monta os controles de busca e um cartão para cada resultado.
     return <OfficePage navigation={navigation} title="Clientes" subtitle="Consulte, edite ou exclua os clientes cadastrados na sua conta.">
         <PrimaryButton label="Novo cliente" icon="person-add-outline" onPress={() => navigation.navigate('NewClient')} />
         <Field label="Buscar" value={busca} onChangeText={setBusca} placeholder="Nome, CPF/CNPJ ou cidade" autoCapitalize="none" />

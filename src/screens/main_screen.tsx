@@ -1,3 +1,4 @@
+// Menu público apresentado antes do login.
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
     Image,
@@ -15,9 +16,11 @@ import { ScreenFooter } from '../components/ScreenFooter';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
+// Imagem local exibida no topo da página.
 const firefighterImage = require('../../assets/images/bombeiro_chamas_subindo_laterais.gif');
 
 export default function MainScreen({ navigation }: Props) {
+    // Estas três ações indicam funcionalidades previstas para etapas futuras.
     function handleAnalisarEmpresa() {
         // TODO: Implementar tela de análise de empresa
         console.log('Análise de empresa em desenvolvimento');
@@ -33,6 +36,7 @@ export default function MainScreen({ navigation }: Props) {
         console.log('Solicitação para aprovação em desenvolvimento');
     }
 
+    // Renderiza a apresentação do sistema e seus atalhos públicos.
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScreenHeader navigation={navigation} title="Menu Principal" />
@@ -88,6 +92,7 @@ export default function MainScreen({ navigation }: Props) {
     );
 }
 
+// Define tamanhos, espaçamentos e cores desta tela.
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,

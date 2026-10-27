@@ -1,3 +1,4 @@
+// Formulário que cria um processo e o vincula a um cliente já cadastrado.
 import { useAppAlert } from '../components/useAppAlert';
 import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -7,7 +8,9 @@ import { Choices, Field, OfficePage, PrimaryButton, Section, colors } from '../c
 import { createProcess, subscribeClients, subscribeSettings, type ClientRecord, type ProcessRecord } from '../services/officeData';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewProcess'>;
+// O Firebase acrescenta ID e data, portanto eles não fazem parte do rascunho.
 type Draft = Omit<ProcessRecord, 'id' | 'createdAt'>;
+// Estado inicial usado para um processo novo.
 const blank: Draft = { clientId: '', clientName: '', title: '', protocol: '', kind: 'AVCB', status: 'Em preparação', propertyAddress: '', municipality: '', occupancy: '', area: '', floors: '', responsible: '', dueDate: '', notes: '' };
 
 export default function NewProcessScreen({ navigation }: Props) {
@@ -19,6 +22,7 @@ export default function NewProcessScreen({ navigation }: Props) {
     const [dataError, setDataError] = useState('');
     const setField = (key: keyof Draft) => (value: string) => setDraft(current => ({ ...current, [key]: value }));
 
+    // Mantém clientes e configurações sincronizados enquanto a tela estiver aberta.
     useEffect(() => {
         try {
             const unsubscribeClients = subscribeClients(setClients, error => setDataError(error.message));
@@ -27,6 +31,7 @@ export default function NewProcessScreen({ navigation }: Props) {
         } catch (error) { setDataError(error instanceof Error ? error.message : 'Erro ao carregar cadastros.'); }
     }, []);
 
+    // Valida os obrigatórios e grava o processo no Firebase.
     async function save() {
         if (!draft.clientId || !draft.title.trim() || !draft.propertyAddress.trim() || !draft.municipality.trim()) {
             showAlert('Campos obrigatórios', 'Selecione um cliente e preencha identificação, endereço e município do imóvel.'); return;
@@ -42,7 +47,9 @@ export default function NewProcessScreen({ navigation }: Props) {
         finally { setSaving(false); }
     }
 
+    // Mostra no máximo oito clientes compatíveis com a pesquisa digitada.
     const visibleClients = clients.filter(client => client.name.toLocaleLowerCase().includes(clientSearch.toLocaleLowerCase())).slice(0, 8);
+    // Divide o formulário em cliente, identificação, imóvel e acompanhamento.
     return <OfficePage navigation={navigation} title="Novo processo" subtitle="Vincule o cliente e registre os dados do imóvel, protocolo e acompanhamento.">
         <Section title="Cliente">
             <Field label="Buscar cliente" value={clientSearch} onChangeText={setClientSearch} placeholder="Nome ou razão social" />
@@ -57,3 +64,4 @@ export default function NewProcessScreen({ navigation }: Props) {
         {alertDialog}
     </OfficePage>;
 }
+    // Estados do formulário, lista de clientes, pesquisa e mensagens de erro.

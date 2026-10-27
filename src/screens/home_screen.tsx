@@ -1,11 +1,14 @@
+// Tela inicial exibida depois que o usuário entra no aplicativo.
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { PrimaryButton, colors } from '../components/OfficeUI';
 
+// A tipagem garante que somente rotas existentes sejam abertas.
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+// Apresenta os três caminhos principais do sistema.
 export default function HomeScreen({ navigation }: Props) {
     return (
         <SafeAreaView style={styles.page}>
@@ -32,6 +35,7 @@ export default function HomeScreen({ navigation }: Props) {
     );
 }
 
+// Mantém conteúdo centralizado e consistente com as demais telas internas.
 const styles = StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.background },
     content: { flex: 1, padding: 18, gap: 18, justifyContent: 'center', width: '100%', maxWidth: 760, alignSelf: 'center' },

@@ -1,3 +1,4 @@
+// Tela de relatórios calculados a partir dos clientes e processos do Firebase.
 import { useEffect, useMemo, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -6,12 +7,15 @@ import { Choices, OfficePage, Section, colors } from '../components/OfficeUI';
 import { subscribeClients, subscribeProcesses, type ClientRecord, type ProcessRecord } from '../services/officeData';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Reports'>;
+// Opções aceitas pelos filtros do relatório.
 type Period = '30 dias' | '90 dias' | '12 meses' | 'Tudo';
 type Group = 'Situação' | 'Tipo';
+// Define uma cor fixa para cada situação e tipo de processo.
 const statusColors: Record<string, string> = { 'Em preparação': '#8AB4F8', Protocolado: '#E5B45A', 'Em análise': '#B396E5', Aprovado: colors.green, Pendência: colors.red };
 const typeColors: Record<string, string> = { AVCB: colors.orange, CLCB: '#66B6DA', Regularização: '#B396E5', Outro: '#A6B37D' };
 
 export default function ReportsScreen({ navigation }: Props) {
+    // Dados recebidos do banco e escolhas atuais do usuário.
     const [clients, setClients] = useState<ClientRecord[]>([]);
     const [processes, setProcesses] = useState<ProcessRecord[]>([]);
     const [period, setPeriod] = useState<Period>('Tudo');
@@ -21,6 +25,7 @@ export default function ReportsScreen({ navigation }: Props) {
     const [error, setError] = useState('');
     const [loaded, setLoaded] = useState(false);
 
+    // Mantém clientes e processos atualizados enquanto o relatório estiver aberto.
     useEffect(() => {
         try {
             const unsubscribeClients = subscribeClients(items => { setClients(items); setLoaded(true); }, value => setError(value.message));
@@ -29,16 +34,20 @@ export default function ReportsScreen({ navigation }: Props) {
         } catch (value) { setError(value instanceof Error ? value.message : 'Erro ao carregar relatório.'); }
     }, []);
 
+    // Aplica o período escolhido usando a data de criação de cada processo.
     const filtered = useMemo(() => {
         const days = period === '30 dias' ? 30 : period === '90 dias' ? 90 : period === '12 meses' ? 365 : Infinity;
         const cutoff = Date.now() - days * 86400000;
         return processes.filter(item => item.createdAt >= cutoff);
     }, [processes, period]);
+    // Conta processos por situação ou tipo para montar as barras.
     const rows = useMemo(() => {
         const keys = group === 'Situação' ? ['Em preparação', 'Protocolado', 'Em análise', 'Aprovado', 'Pendência'] : ['AVCB', 'CLCB', 'Regularização', 'Outro'];
         return keys.map(key => ({ key, count: filtered.filter(item => (group === 'Situação' ? item.status : item.kind) === key).length }));
     }, [filtered, group]);
+    // Evita divisão por zero ao calcular a largura das barras.
     const max = Math.max(1, ...rows.map(row => row.count));
+    // Cria as seis colunas mensais exibidas no gráfico de atividade.
     const months = useMemo(() => Array.from({ length: 6 }, (_, index) => {
         const date = new Date();
         date.setDate(1);
@@ -47,13 +56,16 @@ export default function ReportsScreen({ navigation }: Props) {
         return { key, label: date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''), count: filtered.filter(item => new Date(item.createdAt).getFullYear() === date.getFullYear() && new Date(item.createdAt).getMonth() === date.getMonth()).length };
     }), [filtered]);
     const monthMax = Math.max(1, ...months.map(item => item.count));
+    // Reúne os processos correspondentes às barras selecionadas.
     const selectedItems = filtered.filter(item => {
         const date = new Date(item.createdAt);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         return (!selected || (group === 'Situação' ? item.status : item.kind) === selected) && (!selectedMonth || monthKey === selectedMonth);
     });
+    // Total de aprovados usado no indicador de conclusão.
     const approved = filtered.filter(item => item.status === 'Aprovado').length;
 
+    // Renderiza filtros, indicadores, gráficos e a lista detalhada.
     return <OfficePage navigation={navigation} title="Relatórios" subtitle="Indicadores atualizados com os cadastros da sua conta. Toque em uma barra para detalhar os processos.">
         <Choices<Period> label="Período de cadastro" options={['30 dias', '90 dias', '12 meses', 'Tudo']} value={period} onChange={value => { setPeriod(value); setSelected(null); }} />
         {error ? <Text style={{ color: colors.red }}>{error}</Text> : null}
