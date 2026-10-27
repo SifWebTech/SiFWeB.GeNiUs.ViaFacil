@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test scripts/verify-firebase.cjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

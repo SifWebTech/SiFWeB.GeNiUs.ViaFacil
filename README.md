@@ -143,3 +143,12 @@ Para conferir se a conta existe: **Firebase Console → viafacil-fe487 → Authe
 - [`docs/HISTORICO_DE_MUDANCAS.md`](docs/HISTORICO_DE_MUDANCAS.md) — o que foi feito em cada aula
 - [`docs/MUDANCAS_IMPLEMENTADAS.md`](docs/MUDANCAS_IMPLEMENTADAS.md) — explicação detalhada do cadastro de usuário
 - [`web/README.md`](web/README.md) — versão web em HTML
+
+## Testes locais
+
+```bash
+npm test
+npx tsc --noEmit
+```
+
+Os testes usam Firebase simulado e não alteram o banco real. Cobrem os dígitos verificadores de CPF/CNPJ numéricos, cadastro/edição/exclusão de clientes, atualizações dos assinantes de dados, processos, configurações e mensagens de confirmação na web e no celular.
