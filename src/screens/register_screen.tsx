@@ -1,8 +1,8 @@
+import { useAppAlert } from '../components/useAppAlert';
 import { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
     ActivityIndicator,
-    Alert,
     Image,
     SafeAreaView,
     ScrollView,
@@ -44,6 +44,7 @@ function maskPhone(value: string) {
 }
 
 export default function RegisterScreen({ navigation }: Props) {
+    const { showAlert, alertDialog } = useAppAlert();
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -145,7 +146,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 senha
             );
 
-            Alert.alert(
+            showAlert(
                 'Sucesso!',
                 'Cadastro realizado com sucesso. Faça login para continuar.',
                 [
@@ -174,7 +175,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 mensagemErro = 'E-mail inválido';
             }
 
-            Alert.alert('Erro', mensagemErro);
+            showAlert('Erro', mensagemErro);
         } finally {
             setCarregando(false);
         }
@@ -182,6 +183,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
     return (
         <SafeAreaView style={styles.safeArea}>
+            {alertDialog}
             <ScreenHeader navigation={navigation} title="Cadastro" />
 
             <ScrollView

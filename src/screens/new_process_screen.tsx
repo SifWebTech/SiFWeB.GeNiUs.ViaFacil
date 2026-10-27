@@ -1,5 +1,6 @@
+import { useAppAlert } from '../components/useAppAlert';
 import { useEffect, useState } from 'react';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { Choices, Field, OfficePage, PrimaryButton, Section, colors } from '../components/OfficeUI';
@@ -10,6 +11,7 @@ type Draft = Omit<ProcessRecord, 'id' | 'createdAt'>;
 const blank: Draft = { clientId: '', clientName: '', title: '', protocol: '', kind: 'AVCB', status: 'Em preparação', propertyAddress: '', municipality: '', occupancy: '', area: '', floors: '', responsible: '', dueDate: '', notes: '' };
 
 export default function NewProcessScreen({ navigation }: Props) {
+    const { showAlert, alertDialog } = useAppAlert();
     const [draft, setDraft] = useState<Draft>(blank);
     const [clients, setClients] = useState<ClientRecord[]>([]);
     const [saving, setSaving] = useState(false);
@@ -27,16 +29,16 @@ export default function NewProcessScreen({ navigation }: Props) {
 
     async function save() {
         if (!draft.clientId || !draft.title.trim() || !draft.propertyAddress.trim() || !draft.municipality.trim()) {
-            Alert.alert('Campos obrigatórios', 'Selecione um cliente e preencha identificação, endereço e município do imóvel.'); return;
+            showAlert('Campos obrigatórios', 'Selecione um cliente e preencha identificação, endereço e município do imóvel.'); return;
         }
         if (draft.dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(draft.dueDate)) {
-            Alert.alert('Data inválida', 'Use o formato AAAA-MM-DD para o prazo.'); return;
+            showAlert('Data inválida', 'Use o formato AAAA-MM-DD para o prazo.'); return;
         }
         setSaving(true);
         try {
             await createProcess({ ...draft, title: draft.title.trim(), propertyAddress: draft.propertyAddress.trim(), municipality: draft.municipality.trim() });
-            Alert.alert('Processo cadastrado', 'O processo foi salvo com sucesso.', [{ text: 'Voltar ao dashboard', onPress: () => navigation.goBack() }, { text: 'Cadastrar outro', onPress: () => setDraft(blank) }]);
-        } catch (error) { Alert.alert('Não foi possível salvar', error instanceof Error ? error.message : 'Tente novamente.'); }
+            showAlert('Processo cadastrado', 'O processo foi salvo com sucesso.', [{ text: 'Voltar ao dashboard', onPress: () => navigation.goBack() }, { text: 'Cadastrar outro', onPress: () => setDraft(blank) }]);
+        } catch (error) { showAlert('Não foi possível salvar', error instanceof Error ? error.message : 'Tente novamente.'); }
         finally { setSaving(false); }
     }
 
@@ -52,5 +54,6 @@ export default function NewProcessScreen({ navigation }: Props) {
         <Section title="Imóvel"><Field label="Endereço do imóvel" value={draft.propertyAddress} onChangeText={setField('propertyAddress')} required /><Field label="Município" value={draft.municipality} onChangeText={setField('municipality')} required /><Field label="Ocupação / atividade" value={draft.occupancy} onChangeText={setField('occupancy')} /><Field label="Área construída (m²)" value={draft.area} onChangeText={setField('area')} keyboardType="numeric" /><Field label="Pavimentos" value={draft.floors} onChangeText={setField('floors')} keyboardType="numeric" /></Section>
         <Section title="Acompanhamento"><Field label="Responsável técnico" value={draft.responsible} onChangeText={setField('responsible')} /><Field label="Prazo (AAAA-MM-DD)" value={draft.dueDate} onChangeText={setField('dueDate')} placeholder="2026-12-31" /><Field label="Observações e pendências" value={draft.notes} onChangeText={setField('notes')} multiline /></Section>
         <PrimaryButton label={saving ? 'Salvando...' : 'Cadastrar processo'} onPress={() => void save()} disabled={saving || !clients.length} />
+        {alertDialog}
     </OfficePage>;
 }

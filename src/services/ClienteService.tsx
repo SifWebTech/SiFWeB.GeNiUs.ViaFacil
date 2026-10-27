@@ -127,6 +127,26 @@ export class ClienteService {
         return limpo.length <= 5 ? limpo : `${limpo.substring(0, 5)}-${limpo.substring(5)}`;
     }
 
+    static validarCpfCnpj(texto: string, tipoCliente: ClienteModel['tipoCliente']): boolean {
+        const documento = texto.replace(/[.\/\-\s]/g, '');
+        const pessoaFisica = tipoCliente === 'Pessoa física';
+        const tamanho = pessoaFisica ? 11 : 14;
+        if (!/^\d+$/.test(documento) || documento.length !== tamanho || /^(\d)\1+$/.test(documento)) {
+            return false;
+        }
+
+        const pesos = pessoaFisica
+            ? [[10, 9, 8, 7, 6, 5, 4, 3, 2], [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]]
+            : [[5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]];
+
+        return pesos.every((sequencia, indice) => {
+            const soma = sequencia.reduce((total, peso, posicao) => total + Number(documento[posicao]) * peso, 0);
+            const resto = soma % 11;
+            const digito = resto < 2 ? 0 : 11 - resto;
+            return Number(documento[tamanho - 2 + indice]) === digito;
+        });
+    }
+
     static validarCampos(dados: ClienteModel): { valido: boolean; erros: ErrosCliente } {
         const erros: ErrosCliente = {};
 
@@ -140,6 +160,8 @@ export class ClienteService {
             erros.CpfCnpj = 'Campo obrigatório.';
         } else if (cpfCnpj.length !== (pessoaFisica ? 11 : 14)) {
             erros.CpfCnpj = pessoaFisica ? 'Informe um CPF com 11 dígitos.' : 'Informe um CNPJ com 14 dígitos.';
+        } else if (!this.validarCpfCnpj(dados.CpfCnpj, dados.tipoCliente)) {
+            erros.CpfCnpj = pessoaFisica ? 'CPF inválido. Confira os dígitos.' : 'CNPJ inválido. Confira os dígitos.';
         }
 
         const celular = (dados.celular || '').replace(/\D/g, '');

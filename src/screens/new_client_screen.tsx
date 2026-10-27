@@ -1,5 +1,6 @@
+import { useAppAlert } from '../components/useAppAlert';
 import { useEffect, useState } from 'react';
-import { Alert, Text } from 'react-native';
+import { Text } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { Choices, Field, OfficePage, PrimaryButton, Section, colors } from '../components/OfficeUI';
@@ -12,11 +13,13 @@ type ClientDraft = Omit<ClienteModel, 'id' | 'createdAt' | 'idade' | 'dataAtivid
 const blank: ClientDraft = { tipoCliente: 'Pessoa jurídica', nomeCliente: '', CpfCnpj: '', email: '', celular: '', contato: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '', cep: '', observacoes: '' };
 
 export default function NewClientScreen({ navigation, route }: Props) {
+    const { showAlert, alertDialog } = useAppAlert();
     // Com clienteId a tela funciona como edição
     const clienteId = route.params?.clienteId;
     const [draft, setDraft] = useState<ClientDraft>(blank);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(!!clienteId);
+    const [loadFailed, setLoadFailed] = useState(false);
     useEffect(() => {
         if (clienteId) return;
         try { return subscribeSettings(settings => setDraft(current => ({ ...current, cidade: current.cidade || settings.defaultCity, uf: current.uf || settings.defaultState })), () => {}); }
@@ -26,13 +29,13 @@ export default function NewClientScreen({ navigation, route }: Props) {
         if (!clienteId) return;
         ClienteService.obterPorId(clienteId)
             .then(cliente => {
-                if (!cliente) { Alert.alert('Cliente não encontrado', 'Ele pode ter sido excluído.'); navigation.goBack(); return; }
+                if (!cliente) { setLoadFailed(true); showAlert('Cliente não encontrado', 'Ele pode ter sido excluído.', [{ text: 'Voltar', onPress: () => navigation.goBack() }]); return; }
                 const { id, createdAt, idade, dataAtividade, ...dados } = cliente;
                 setDraft(dados);
             })
-            .catch(error => Alert.alert('Não foi possível carregar', error instanceof Error ? error.message : 'Tente novamente.'))
+            .catch(error => { setLoadFailed(true); showAlert('Não foi possível carregar', error instanceof Error ? error.message : 'Tente novamente.', [{ text: 'Voltar', onPress: () => navigation.goBack() }]); })
             .finally(() => setLoading(false));
-    }, [clienteId, navigation]);
+    }, [clienteId, navigation, showAlert]);
     const setField = (key: keyof ClientDraft, mask?: (value: string) => string) => (value: string) => setDraft(current => ({ ...current, [key]: mask ? mask(value) : value }));
     const maskDocument = (value: string) => ClienteService.aplicarMascaraCpfCnpj(draft.tipoCliente === 'Pessoa física' ? value.replace(/\D/g, '').slice(0, 11) : value);
 
@@ -40,19 +43,18 @@ export default function NewClientScreen({ navigation, route }: Props) {
         const dados: ClientDraft = { ...draft, nomeCliente: draft.nomeCliente.trim(), email: draft.email.trim(), celular: draft.celular.trim(), cidade: draft.cidade.trim(), uf: draft.uf.trim() };
         const { valido, erros } = ClienteService.validarCampos(dados);
         if (!valido) {
-            Alert.alert('Confira os dados', Object.values(erros).join('\n')); return;
+            showAlert('Confira os dados', Object.values(erros).join('\n')); return;
         }
         setSaving(true);
         try {
             if (clienteId) {
                 await ClienteService.atualizar(clienteId, dados);
-                Alert.alert('Cliente atualizado', 'As alterações foram salvas.');
-                navigation.goBack();
+                showAlert('Cliente atualizado', 'As alterações foram salvas.', [{ text: 'Voltar', onPress: () => navigation.goBack() }]);
                 return;
             }
             await ClienteService.criar(dados);
-            Alert.alert('Cliente cadastrado', 'O cliente foi salvo com sucesso.', [{ text: 'Voltar ao dashboard', onPress: () => navigation.goBack() }, { text: 'Cadastrar outro', onPress: () => setDraft(blank) }]);
-        } catch (error) { Alert.alert('Não foi possível salvar', error instanceof Error ? error.message : 'Tente novamente.'); }
+            showAlert('Cliente cadastrado', 'O cliente foi salvo com sucesso.', [{ text: 'Voltar ao dashboard', onPress: () => navigation.goBack() }, { text: 'Cadastrar outro', onPress: () => setDraft(blank) }]);
+        } catch (error) { showAlert('Não foi possível salvar', error instanceof Error ? error.message : 'Tente novamente.'); }
         finally { setSaving(false); }
     }
 
@@ -80,6 +82,7 @@ export default function NewClientScreen({ navigation, route }: Props) {
         <Section title="Observações"><Field label="Informações adicionais" value={draft.observacoes} onChangeText={setField('observacoes')} multiline /></Section>
         <Text style={{ color: colors.muted, fontSize: 12 }}>* Campos obrigatórios</Text>
         <PrimaryButton label={saving ? 'Salvando...' : clienteId ? 'Salvar alterações' : 'Cadastrar cliente'}
-        onPress={() => void save()} disabled={saving || loading} />
+        onPress={() => void save()} disabled={saving || loading || loadFailed} />
+        {alertDialog}
     </OfficePage>;
 }

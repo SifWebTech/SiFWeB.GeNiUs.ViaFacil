@@ -1,5 +1,6 @@
+import { useAppAlert } from '../components/useAppAlert';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,16 +11,8 @@ import type { ClienteModel } from '../model/ClienteModel';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Clients'>;
 
-// No navegador o Alert com botões não aparece, então usamos o confirm do próprio navegador
-function confirmar(titulo: string, mensagem: string, onConfirmar: () => void) {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${titulo}\n\n${mensagem}`)) onConfirmar();
-        return;
-    }
-    Alert.alert(titulo, mensagem, [{ text: 'Cancelar', style: 'cancel' }, { text: 'Excluir', style: 'destructive', onPress: onConfirmar }]);
-}
-
 export default function ClientsScreen({ navigation }: Props) {
+    const { showAlert, alertDialog } = useAppAlert();
     const [clientes, setClientes] = useState<ClienteModel[]>([]);
     const [busca, setBusca] = useState('');
     const [carregando, setCarregando] = useState(true);
@@ -48,12 +41,12 @@ export default function ClientsScreen({ navigation }: Props) {
     }, [clientes, busca]);
 
     function excluir(cliente: ClienteModel) {
-        confirmar('Excluir cliente', `Deseja excluir "${cliente.nomeCliente}"? Essa ação não pode ser desfeita.`, async () => {
+        showAlert('Excluir cliente', `Deseja excluir "${cliente.nomeCliente}"? Essa ação não pode ser desfeita.`, [{ text: 'Cancelar', style: 'cancel' }, { text: 'Excluir', style: 'destructive', onPress: async () => {
             try {
                 await ClienteService.excluir(cliente.id!);
                 setClientes(atual => atual.filter(item => item.id !== cliente.id));
-            } catch (error) { Alert.alert('Não foi possível excluir', error instanceof Error ? error.message : 'Tente novamente.'); }
-        });
+            } catch (error) { showAlert('Não foi possível excluir', error instanceof Error ? error.message : 'Tente novamente.'); }
+        } }]);
     }
 
     return <OfficePage navigation={navigation} title="Clientes" subtitle="Consulte, edite ou exclua os clientes cadastrados na sua conta.">
@@ -79,5 +72,6 @@ export default function ClientsScreen({ navigation }: Props) {
                 </TouchableOpacity>
             </View>
         </View>)}
+        {alertDialog}
     </OfficePage>;
 }
